@@ -7,6 +7,9 @@ cmake_minimum_required (VERSION 3.8)
 # TODO: Rename solution
 project ("GoOnline")
 
+include_directories(common/include/)
+file(GLOB_RECURSE PROJECT_COMMON common/src/*.cpp common/include/*.h)
+
 # Include sub-projects.
 # TODO: Rename project
 set(EXECUTABLE_CUSTOM_NAME "GoOnlineServer")

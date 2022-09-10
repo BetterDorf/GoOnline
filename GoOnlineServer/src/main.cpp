@@ -1,9 +1,15 @@
 #include <iostream>
 #include <SFML/Network.hpp>
 
+#include "Player.h"
+#include "MovePacket.h"
+#include "ServerMessage.h"
+#include "Goban.h"
+
 int main()
 {
-    
+    Goban goban(19, 19);
+
     sf::TcpListener listener;
 
     // Listen and block execution until we get a connection
@@ -13,33 +19,123 @@ int main()
         // Error
     }
 
-    sf::TcpSocket client;
-    if (listener.accept(client) != sf::Socket::Done)
+    // Accept clients
+    Player players[2];
+    listener.accept(players[0].clientConnection);
+    players[0].colour = black;
+
+    // TODO tell first client to wait for new connection
+
+    listener.accept(players[1].clientConnection);
+    players[1].colour = white;
+
+    // Send start game message to both clients indicating who's white and who's black
+    sf::Packet packet;
+    ServerMessage serverMessage(gameStarted, 0);
+    packet << serverMessage;
+    players[0].clientConnection.send(packet);
+    packet.clear();
+    serverMessage.additionalInfo = 1;
+    packet << serverMessage;
+    players[1].clientConnection.send(packet);
+
+    // PLAY GAME
+    Stone toPlay = black;
+    bool gameOver = false;
+    while (!gameOver)
     {
-        return EXIT_FAILURE;
-        // Error
-    }
-
-    std::cout << "Connection received : " << client.getRemoteAddress() << std::endl;
-
-    // Receive data and print it
-    do
-    {
-        char receivedData[100];
-        size_t receivedSize;
-
-        if (client.receive(receivedData, sizeof(receivedData), receivedSize) != sf::Socket::Done)
+        // Selector logic to receive data from the clients
+        sf::SocketSelector selector;
+        for (auto& player : players)
         {
-            // Error
-            std::cerr << "No idea what happened" << std::endl;
-            break;
+            selector.add(player.clientConnection);
         }
 
-        // Print the data
-        std::cout << receivedData << std::endl;
-    } while (true);
+        if (selector.wait(sf::seconds(6000.0f)))
+        {
+            for (auto& curPlayer : players)
+            {
+                if (curPlayer.colour != toPlay)
+                {
+                    // Player sent move at incorrect time
+                }
+                else if (selector.isReady(curPlayer.clientConnection))
+                {
+                    // Receive data from client
+                    packet.clear();
+                    curPlayer.clientConnection.receive(packet);
+                    if (GetPacketType(packet) != move)
+                    {
+                        // We only care about moves from clients
+                        continue;
+                    }
 
-    std::cout << "Server terminated" << std::endl;
+                    MovePacket move;
+                    packet >> move;
+                    bool validMove = true;
+
+                    switch (move.moveType)
+                    {
+                    case stonePlacement:
+                    {
+                        // Play the move
+                        if (goban.PlayStone(move.x, move.y, toPlay))
+                        {
+                            validMove = true;
+                        }
+                        else
+                        {
+                            validMove = false;
+
+                            // TODO Ask for redo if the move isn't valid
+                            std::cout << "Invalid Move." << std::endl;
+                        }
+
+                        break;
+                    }
+                    case pass:
+                    {
+                        // Pass is always valid
+                        break;
+                    }
+                    case abandon:
+                    {
+                        // Abandonning is always valid but ends the game
+                        gameOver = true;
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+
+                    // Transmit the move
+                    if (validMove)
+                    {
+                        packet.clear();
+                        packet << move;
+                        for (auto& player : players)
+                        {
+                            if (player.colour != curPlayer.colour)
+                            {
+                                player.clientConnection.send(packet);
+                            }
+                        }
+
+                        // Print the goban on the server-side
+                        std::cout << goban.ToString() << std::endl;
+
+                        // Change player to play
+                        if (toPlay == black)
+                            toPlay = white;
+                        else
+                            toPlay = black;
+                    }
+                }
+            }
+        }
+    }
+
+    std::cout << "Server timed out" << std::endl;
 
     return EXIT_SUCCESS;
 }
