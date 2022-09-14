@@ -1,5 +1,7 @@
 #include <SFML/network.hpp>
 #include <SFML/Graphics.hpp>
+#include <imgui.h>
+#include <imgui-SFML.h>
 #include <iostream>
 #include<string.h>
 
@@ -10,7 +12,7 @@
 int main()
 {
     // Create go related variables
-    Goban goban(19, 19);
+    golc::Goban goban(19, 19);
     Stone playerColour;
     Stone otherColour;
 
@@ -21,9 +23,19 @@ int main()
     std::cin >> serverIp;
 
     sf::TcpSocket socket;
+    socket.setBlocking(false);
+
+    // Create window
+    sf::RenderWindow window(sf::VideoMode(640 * 2, 480 * 2), "OnlineGo");
+    if (!ImGui::SFML::Init(window))
+    {
+        std::cout << "Error loading ImGui" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     if (socket.connect(serverIp, 52800) != sf::Socket::Done)
     {
-       // Couldn't connect
+        // Couldn't connect
         std::cout << "Couldn't connect" << std::endl;
         return EXIT_FAILURE;
     }
@@ -58,9 +70,6 @@ int main()
             }
         }
     }
-
-    // Create the application window
-    sf::RenderWindow window(sf::VideoMode(800, 600), "OnlineGO");
 
     // Once game is started we can play
     Stone turnToPlay = black;

@@ -3,209 +3,220 @@
 #include <algorithm>
 #include <string>
 
-Goban::Goban(const int x, const int y) : x_(x), y_(y)
+namespace golc
 {
-	stones_ = std::vector<std::vector<Stone>>(x);
-	for (auto& column : stones_)
+
+	Goban::Goban(const int x, const int y) : x_(x), y_(y)
 	{
-		column = std::vector<Stone>(y);
-		for (auto& stone : column)
+		stones_ = Board(x);
+		for (auto& column : stones_)
 		{
-			stone = empty;
-		}
-	}
-}
-
-bool Goban::PlayStone(const int x, const int y, const Stone team)
-{
-	// Check if the play is legal
-	// Check other stone present
-	if (stones_.at(x).at(y) != empty)
-		return  false;
-
-	// TODO Check KO
-
-	// Add the stone
-	stones_.at(x).at(y) = team;
-
-	// Check if other stones died as a result
-	const auto neighbours = GetNeighbours(x, y);
-	for (const auto& neighbour : neighbours)
-	{
-		Stone stone = StoneAt(neighbour);
-		if (stone != team && stone != empty)
-		{
-			auto group = GetGroup(neighbour);
-			if (CountLiberties(group) == 0)
+			column = std::vector<Stone>(y);
+			for (auto& stone : column)
 			{
-				KillGroup(group);
+				stone = empty;
 			}
 		}
 	}
 
-	// Check self-capture
-	if (CountLiberties(x, y) == 0)
+	bool Goban::PlayStone(const int x, const int y, const Stone team)
 	{
-		stones_.at(x).at(y) = empty;
-		return  false;
-	}
+		// Check if the play is legal
+		// Check other stone present
+		if (stones_.at(x).at(y) != empty)
+			return  false;
 
-	return true;
-}
+		// TODO Check KO
 
-int Goban::CountLiberties(int x, int y)
-{
-	return CountLiberties(GetGroup(x, y));
-}
+		// Add the stone
+		stones_.at(x).at(y) = team;
 
-int Goban::CountLiberties(const std::vector<std::pair<int, int>>& group)
-{
-	std::vector<std::pair<int, int>> liberties;
-	
-	for (auto& stone : group)
-	{
-		auto neighbours = GetNeighbours(stone);
-		for(auto& neighbour : neighbours)
+		// Check if other stones died as a result
+		const auto neighbours = GetNeighbours(x, y);
+		for (const auto& neighbour : neighbours)
 		{
-			if (StoneAt(neighbour) == empty) 
+			Stone stone = StoneAt(neighbour);
+			if (stone != team && stone != empty)
 			{
-				liberties.emplace_back(neighbour);
-			}
-		}
-	}
-
-	return liberties.size();
-}
-
-std::vector<std::pair<int, int>> Goban::GetGroup(int x, int y)
-{
-	return GetGroup(std::pair<int, int> (x, y));
-}
-
-std::vector<std::pair<int, int>> Goban::GetGroup(const std::pair<int, int> pos)
-{
-	std::vector<std::pair<int, int>> group;
-
-	const int team = StoneAt(pos);
-
-	if (team == 0)
-		return  group;
-
-	group.emplace_back(pos);
-
-	auto stonesAdded = std::vector<std::pair<int, int>>();
-	auto stonesToCheck = std::vector<std::pair<int, int>>();
-	stonesToCheck.emplace_back(pos);
-
-	// propagate from the stones that have just been added to the group
-	while (stonesToCheck.empty() == false)
-	{
-		for (const auto& addedStone : stonesToCheck)
-		{
-			for (auto& neighbourPos : GetNeighbours(addedStone))
-			{
-				if (StoneAt(neighbourPos) == team)
+				auto group = GetGroup(neighbour);
+				if (CountLiberties(group) == 0)
 				{
-					if (std::find(group.begin(), group.end(), neighbourPos) != group.end())
-					{
-						group.emplace_back(neighbourPos);
-						stonesAdded.emplace_back(neighbourPos);
-					}
+					KillGroup(group);
 				}
 			}
 		}
 
-		stonesToCheck = std::vector<std::pair<int, int>>(stonesAdded);
-		stonesAdded.clear();
-	}
-
-	return group;
-}
-
-std::vector<std::pair<int, int>> Goban::GetNeighbours(int x, int y) const
-{
-	std::vector<std::pair<int, int>> neighbours;
-
-	if (x + 1 < x_)
-	{
-		neighbours.emplace_back(std::pair<int, int>(x + 1, y));
-	}
-
-	if (x - 1 >= 0)
-	{
-		neighbours.emplace_back(std::pair<int, int>(x - 1, y));
-	}
-
-	if (y - 1 >= 0)
-	{
-		neighbours.emplace_back(std::pair<int, int>(x, y - 1));
-	}
-
-	if (y + 1 < y_)
-	{
-		neighbours.emplace_back(std::pair<int, int>(x, y + 1));
-	}
-
-	return  neighbours;
-}
-
-std::vector<std::pair<int, int>> Goban::GetNeighbours(const std::pair<int, int> pos) const
-{
-	return GetNeighbours(pos.first, pos.second);
-}
-
-Stone Goban::StoneAt(const int x, const int y)
-{
-	return stones_.at(x).at(y);
-}
-
-Stone Goban::StoneAt(const std::pair<int, int> pos)
-{
-	return StoneAt(pos.first, pos.second);
-}
-
-std::string Goban::ToString()
-{
-	std::string s;
-
-	for (auto it = stones_.rbegin(); it != stones_.rend(); ++it)
-	{
-		for (const auto& stone : *it)
+		// Check self-capture
+		if (CountLiberties(x, y) == 0)
 		{
-			if (stone == empty)
-				s += "+";
+			stones_.at(x).at(y) = empty;
+			return  false;
+		}
+
+		return true;
+	}
+
+	int Goban::CountLiberties(int x, int y)
+	{
+		return CountLiberties(GetGroup(x, y));
+	}
+
+	int Goban::CountLiberties(const Group& group)
+	{
+		Group liberties;
+	
+		for (auto& stone : group)
+		{
+			auto neighbours = GetNeighbours(stone);
+			for(auto& neighbour : neighbours)
+			{
+				if (StoneAt(neighbour) == empty) 
+				{
+					liberties.emplace_back(neighbour);
+				}
+			}
+		}
+
+		return liberties.size();
+	}
+
+	Group Goban::GetGroup(int x, int y)
+	{
+		return GetGroup(Coord (x, y));
+	}
+
+	Group Goban::GetGroup(const Coord pos)
+	{
+		Group group;
+
+		const int team = StoneAt(pos);
+
+		if (team == 0)
+			return  group;
+
+		group.emplace_back(pos);
+
+		auto stonesAdded = Group();
+		auto stonesToCheck = Group();
+		stonesToCheck.emplace_back(pos);
+
+		// propagate from the stones that have just been added to the group
+		while (stonesToCheck.empty() == false)
+		{
+			for (const auto& addedStone : stonesToCheck)
+			{
+				for (auto& neighbourPos : GetNeighbours(addedStone))
+				{
+					if (StoneAt(neighbourPos) == team)
+					{
+						if (std::find(group.begin(), group.end(), neighbourPos) != group.end())
+						{
+							group.emplace_back(neighbourPos);
+							stonesAdded.emplace_back(neighbourPos);
+						}
+					}
+				}
+			}
+
+			stonesToCheck = Group(stonesAdded);
+			stonesAdded.clear();
+		}
+
+		return group;
+	}
+
+	Group Goban::GetNeighbours(int x, int y) const
+	{
+		Group neighbours;
+
+		if (x + 1 < x_)
+		{
+			neighbours.emplace_back(Coord(x + 1, y));
+		}
+
+		if (x - 1 >= 0)
+		{
+			neighbours.emplace_back(Coord(x - 1, y));
+		}
+
+		if (y - 1 >= 0)
+		{
+			neighbours.emplace_back(Coord(x, y - 1));
+		}
+
+		if (y + 1 < y_)
+		{
+			neighbours.emplace_back(Coord(x, y + 1));
+		}
+
+		return  neighbours;
+	}
+
+	Group Goban::GetNeighbours(const Coord pos) const
+	{
+		return GetNeighbours(pos.first, pos.second);
+	}
+
+	Stone Goban::StoneAt(const int x, const int y)
+	{
+		return stones_.at(x).at(y);
+	}
+
+	Stone Goban::StoneAt(const Coord pos)
+	{
+		return StoneAt(pos.first, pos.second);
+	}
+
+	std::string Goban::ToString()
+	{
+		std::string s;
+
+		for (auto it = stones_.rbegin(); it != stones_.rend(); ++it)
+		{
+			for (const auto& stone : *it)
+			{
+				if (stone == empty)
+					s += "+";
+				else
+				{
+					s += std::to_string(stone);
+				}
+				s += " ";
+			}
+
+			s += "\n";
+		}
+
+		s += "White captures : ";
+		s += std::to_string(wCaptures_);
+		s += "\t";
+		s += "Black captures : ";
+		s += std::to_string(bCaptures_);
+
+		return s;
+	}
+
+	void Goban::KillGroup(const Group& group)
+	{
+		for (auto& stone : group)
+		{
+			if (StoneAt(stone) == 1)
+			{
+				wCaptures_++;
+			}
 			else
 			{
-				s += std::to_string(stone);
+				bCaptures_++;
 			}
-			s += " ";
-		}
 
-		s += "\n";
+			stones_.at(stone.first).at(stone.second) = empty;
+		}
 	}
 
-	s += "White captures : ";
-	s += std::to_string(wCaptures_);
-	s += "\t";
-	s += "Black captures : ";
-	s += std::to_string(bCaptures_);
-
-	return s;
-}
-
-void Goban::KillGroup(const std::vector<std::pair<int, int>>& group)
-{
-	for (auto& stone : group)
+	void const Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps)
 	{
-		if (StoneAt(stone) == 1)
-		{
-			wCaptures_++;
-		}
-		else
-		{
-			bCaptures_++;
-		}
-
-		stones_.at(stone.first).at(stone.second) = empty;
+		board = Board(stones_);
+		bCaps = bCaptures_;
+		wCaps = wCaptures_;
 	}
 }

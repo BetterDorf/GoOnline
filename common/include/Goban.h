@@ -4,31 +4,40 @@
 
 #include "Stone.h"
 
-class Goban
+namespace golc
 {
-public:
-	Goban(int x, int y);
+	using Coord = std::pair<int, int>;
+	using Group = std::vector<Coord>;
+	using Board = std::vector<std::vector<Stone>>;
 
-	bool PlayStone(int x, int y, Stone team);
+	class Goban
+	{
+	public:
+		Goban(int x, int y);
 
-	int CountLiberties(int x, int y);
-	int CountLiberties(const std::vector<std::pair<int, int>>&);
+		bool PlayStone(int x, int y, Stone team);
 
-	std::vector<std::pair<int, int>> GetGroup(int x, int y);
-	std::vector<std::pair<int, int>> GetGroup(std::pair<int, int>);
-	std::vector<std::pair<int, int>> GetNeighbours(int x, int y) const;
-	std::vector<std::pair<int, int>> GetNeighbours(std::pair<int, int>) const;
+		int CountLiberties(int x, int y);
+		int CountLiberties(const Group&);
 
-	void KillGroup(const std::vector<std::pair<int, int>>&);
+		Group GetGroup(int x, int y);
+		Group GetGroup(Coord);
+		Group GetNeighbours(int x, int y) const;
+		Group GetNeighbours(Coord) const;
 
-	Stone StoneAt(int x, int y);
-	Stone StoneAt(std::pair<int, int>);
+		void KillGroup(const Group&);
 
-	std::string ToString();
-private:
-	int x_;
-	int y_;
-	int bCaptures_ = 0;
-	int wCaptures_ = 0;
-	std::vector<std::vector<Stone>> stones_;
-};
+		Stone StoneAt(int x, int y);
+		Stone StoneAt(Coord);
+
+		void const ReadBoardInfo(Board& board, int& bCaps, int& wCaps);
+
+		std::string ToString();
+	private:
+		int x_;
+		int y_;
+		int bCaptures_ = 0;
+		int wCaptures_ = 0;
+		Board stones_;
+	};
+}
