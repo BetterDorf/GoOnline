@@ -7,6 +7,23 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
+if(CMAKE_BUILD_TYPE MATCHES Release)
+    set(SFML_STATIC_LIBRARIES TRUE)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()
+
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /w14640)
+    add_compile_definitions(_USE_MATH_DEFINES)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor)
+endif()
+
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+
 # Add data files
 file(GLOB_RECURSE DATA_FILES data/*)
 source_group("data/" FILES ${DATA_FILES})
@@ -32,13 +49,15 @@ add_custom_target(
 # Get SFML and box2d libraries
 find_package(OpenGL REQUIRED)
 find_package(SFML COMPONENTS system window graphics main CONFIG REQUIRED)
+
 include_directories(include/)
 
 # Add source to this project's executable.  
-file(GLOB_RECURSE PROJECT_SRC src/*.cpp include/*.h)
+file(GLOB_RECURSE PROJECT_SRC src/*.cpp include/*.h[pp])
+set (SRC ${PROJECT_SRC} ${PROJECT_COMMON})
 
 # TODO: use the line with "win32" in it if you don't want the console
-add_executable(${EXECUTABLE_CUSTOM_NAME} ${PROJECT_SRC}  ${PROJECT_COMMON})
+add_executable(${EXECUTABLE_CUSTOM_NAME} ${SRC})
 # add_executable(${EXECUTABLE_CUSTOM_NAME} win32 ${PROJECT_SRC})
 
 # Add data dependencies

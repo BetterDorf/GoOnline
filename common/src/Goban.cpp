@@ -172,7 +172,13 @@ std::string Goban::ToString()
 	{
 		for (const auto& stone : *it)
 		{
-			s += std::to_string(stone);
+			if (stone == empty)
+				s += "+";
+			else
+			{
+				s += std::to_string(stone);
+			}
+			s += " ";
 		}
 
 		s += "\n";

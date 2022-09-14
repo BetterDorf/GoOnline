@@ -1,5 +1,6 @@
-#include <iostream>
 #include <SFML/network.hpp>
+#include <SFML/Graphics.hpp>
+#include <iostream>
 #include<string.h>
 
 #include "MovePacket.h"
@@ -8,6 +9,7 @@
 
 int main()
 {
+    // Create go related variables
     Goban goban(19, 19);
     Stone playerColour;
     Stone otherColour;
@@ -56,6 +58,9 @@ int main()
             }
         }
     }
+
+    // Create the application window
+    sf::RenderWindow window(sf::VideoMode(800, 600), "OnlineGO");
 
     // Once game is started we can play
     Stone turnToPlay = black;
