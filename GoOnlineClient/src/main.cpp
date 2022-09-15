@@ -15,7 +15,7 @@ int main()
 {
     // Create go related variables
     golc::Goban goban(19, 19);
-    goc::GoGraphics gobanVisuals(19, 50);
+    goc::GoGraphics gobanVisuals(19);
     Stone playerColour;
     Stone otherColour;
 
@@ -52,6 +52,8 @@ int main()
 
     while (window.isOpen())
     {
+        window.clear();
+
         bool mousePressed = false;
         sf::Event event{};
         while (window.pollEvent(event))
@@ -157,6 +159,9 @@ int main()
         }
         case playing:
         {
+            // Draw board
+            window.draw(gobanVisuals);
+
             if (gameOver)
             {
                 clientState = done;
@@ -181,6 +186,8 @@ int main()
                     inPacket >> message;
 
                     // TODO respond to server
+
+                    // TODO logic to cancel moves if server disapprove
                 }
                 case move:
                 {
@@ -206,6 +213,7 @@ int main()
                     }
                     }
 
+                    gobanVisuals.UpdateMove(goban);
                     turnToPlay = playerColour;
                 }
                 default:
@@ -226,6 +234,7 @@ int main()
                         // Move was validated and sent
                         isSending = false;
                         turnToPlay = otherColour;
+                        gobanVisuals.UpdateMove(goban);
                     }
 
                     // No need to read input, just wait on the sending
@@ -238,9 +247,6 @@ int main()
                 std::cout << "Your turn to play.\ntype X,Y to play\tpass to pass\tabandon to forfeit" << std::endl;
                 std::string input;
 
-                //Reset buffer
-                std::cin.clear();
-                //std::cin.ignore(std::numeric_limits<std::streamsize>::max());
                 std::cin >> input;
 
                 MovePacket move;
@@ -307,6 +313,7 @@ int main()
                     isSending = true;
                 }
             }
+
             break;
         }
         case done:
@@ -315,9 +322,8 @@ int main()
             break;
         }
 
-        window.clear();
         ImGui::SFML::Render(window);
-        window.draw(gobanVisuals);
+       // window.draw(gobanVisuals);
         window.display();
     }
 
