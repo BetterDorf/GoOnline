@@ -8,22 +8,22 @@
 #include "MovePacket.h"
 #include "ServerMessage.h"
 #include "Goban.h"
+#include "GoGraphics.h"
+#include "ClientGameStates.h"
 
 int main()
 {
     // Create go related variables
     golc::Goban goban(19, 19);
+    goc::GoGraphics gobanVisuals(19, 50);
     Stone playerColour;
     Stone otherColour;
 
-    // Ask to get an ip from the user
-    std::cout << "Ip du serveur : " << std::endl;
-
-    std::string serverIp;
-    std::cin >> serverIp;
-
     sf::TcpSocket socket;
     socket.setBlocking(false);
+
+    sf::Packet sendingPacket;
+    sf::Packet receivePacket;
 
     // Create window
     sf::RenderWindow window(sf::VideoMode(640 * 2, 480 * 2), "OnlineGo");
@@ -33,23 +33,106 @@ int main()
         return EXIT_FAILURE;
     }
 
-    if (socket.connect(serverIp, 52800) != sf::Socket::Done)
-    {
-        // Couldn't connect
-        std::cout << "Couldn't connect" << std::endl;
-        return EXIT_FAILURE;
-    }
+    // LoopGame logic
+    sf::Clock deltaClock;
+    ClientState clientState = login;
+    std::string ip;
+    unsigned short port;
 
-    // Wait for game started message
-    while (true)
-    {
-        sf::Packet packet;
-        socket.receive(packet);
+    sf::Packet inPacket;
+    sf::Packet outPacket;
 
-        if (GetPacketType(packet) == serverMessage)
+    bool isSending = false;
+
+    char ipBuffer[30] = "localhost";
+    char portBuffer[20] = "3003";
+
+    Stone turnToPlay = black;
+    bool gameOver = false;
+
+    while (window.isOpen())
+    {
+        bool mousePressed = false;
+        sf::Event event{};
+        while (window.pollEvent(event))
         {
+            ImGui::SFML::ProcessEvent(window, event);
+
+            if (event.type == sf::Event::Closed)
+            {
+                window.close();
+            }
+            else if (event.type == sf::Event::Resized)
+            {
+                sf::Vector2f size = { static_cast<float>(event.size.width), static_cast<float>(event.size.height) };
+                sf::Vector2f center = size / 2.0f;
+                window.setView(sf::View(center, size));
+            }
+
+            mousePressed = event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+        }
+
+        // Update ImGui
+        ImGui::SFML::Update(window, deltaClock.restart());
+
+        // TODO switch on gamestate to receive and send the correct packets
+
+        switch (clientState)
+        {
+        case login:
+        {
+            bool show = true;
+
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+
+            ImGui::Begin("Login", &show);
+            ImGui::TextWrapped("Enter the ip address and the port number of the server.");
+
+            ImGui::InputTextWithHint("IP", "ServerIp", ipBuffer, sizeof(ipBuffer));
+            ImGui::InputTextWithHint("Port", "PortNumber", portBuffer, sizeof(portBuffer));
+
+            if (ImGui::Button("Login"))
+            {
+                clientState = connecting;
+                ip = ipBuffer;
+                port = static_cast<unsigned short>(std::stoi(portBuffer));
+            }
+
+            ImGui::End();
+            break;
+        }
+        case connecting:
+        {
+            const sf::Socket::Status status = socket.connect(ip, port);
+
+            if (status == sf::Socket::Done || status == sf::Socket::NotReady)
+            {
+                clientState = waitingForPlayer;
+            }
+            else if (status == sf::Socket::Disconnected || status == sf::Socket::Error)
+            {
+                std::cerr << "Couldn't connect\n";
+                return EXIT_FAILURE;
+            }
+            break;
+        }
+        case waitingForPlayer:
+        {
+            if (socket.receive(inPacket) != sf::Socket::Done)
+            {
+                break;
+            }
+
+            if (GetPacketType(inPacket) != serverMessage)
+            {
+                inPacket.clear();
+                break;
+            }
+
             ServerMessage message;
-            packet >> message;
+            inPacket >> message;
 
             if (message.msgType == gameStarted)
             {
@@ -66,71 +149,92 @@ int main()
                     std::cout << "You play white" << std::endl;
                 }
 
+                clientState = playing;
+            }
+
+            inPacket.clear();
+            break;
+        }
+        case playing:
+        {
+            if (gameOver)
+            {
+                clientState = done;
                 break;
             }
-        }
-    }
 
-    // Once game is started we can play
-    Stone turnToPlay = black;
-    bool gameOver = false;
-    while (!gameOver)
-    {
-        sf::Packet packet;
-        if (turnToPlay != playerColour)
-        {
-            // Other player's turn
-
-            // Receive data
-            packet.clear();
-            socket.receive(packet);
-            switch (GetPacketType(packet))
+            if (turnToPlay != playerColour)
             {
-            case serverMessage:
-            {
-                ServerMessage message;
-                packet >> message;
+                // Other player's turn
 
-                // TODO respond to server
-            }
-            case move:
-            {
-                MovePacket move;
-                packet >> move;
-
-                switch (move.moveType)
+                // Receive data
+                if (socket.receive(inPacket) != sf::Socket::Done)
                 {
-                case stonePlacement:
-                {
-                    goban.PlayStone(move.x, move.y, otherColour);
                     break;
                 }
-                case pass:
+
+                switch (GetPacketType(inPacket))
                 {
-                    // Nothing to do, turn will be passed
+                case serverMessage:
+                {
+                    ServerMessage message;
+                    inPacket >> message;
+
+                    // TODO respond to server
+                }
+                case move:
+                {
+                    MovePacket move;
+                    inPacket >> move;
+
+                    switch (move.moveType)
+                    {
+                    case stonePlacement:
+                    {
+                        goban.PlayStone(move.x, move.y, otherColour);
+                        break;
+                    }
+                    case pass:
+                    {
+                        // Nothing to do, turn will be passed
+                        break;
+                    }
+                    case abandon:
+                    {
+                        std::cout << "You win by forfeit!" << std::endl;
+                        return EXIT_SUCCESS;
+                    }
+                    }
+
+                    turnToPlay = playerColour;
+                }
+                default:
                     break;
                 }
-                case abandon:
-                {
-                    std::cout << "You win by forfeit!" << std::endl;
-                    return EXIT_SUCCESS;
-                }
-                }
 
-                turnToPlay = playerColour;
+                inPacket.clear();
             }
-            default:
-                break;
-            }
-        }
-        else
-        {
-            // Player's turn
-            std::cout << goban.ToString() << std::endl;
-
-            bool moveSent = false;
-            do
+            else
             {
+                // Player's turn
+
+                // Send info
+                if (isSending)
+                {
+                    if (socket.send(outPacket) == sf::Socket::Done)
+                    {
+                        // Move was validated and sent
+                        isSending = false;
+                        turnToPlay = otherColour;
+                    }
+
+                    // No need to read input, just wait on the sending
+                    break;
+                }
+
+                // TODO change visuals
+                std::cout << goban.ToString() << std::endl;
+
                 std::cout << "Your turn to play.\ntype X,Y to play\tpass to pass\tabandon to forfeit" << std::endl;
                 std::string input;
 
@@ -197,18 +301,24 @@ int main()
                 if (validMove)
                 {
                     // Send the valid move
-                    packet.clear();
-                    packet << move;
-                    socket.send(packet);
+                    outPacket.clear();
+                    outPacket << move;
 
-                    moveSent = true;
-
-                    std::cout << goban.ToString() << std::endl;
+                    isSending = true;
                 }
-            } while (!moveSent);
-
-            turnToPlay = otherColour;
+            }
+            break;
         }
+        case done:
+            break;
+        default:
+            break;
+        }
+
+        window.clear();
+        ImGui::SFML::Render(window);
+        window.draw(gobanVisuals);
+        window.display();
     }
 
     return EXIT_SUCCESS;

@@ -11,11 +11,7 @@ int main()
     golc::Goban goban(19, 19);
 
     sf::TcpListener listener;
-
-    std::cout << "Choose port number\n";
-
-    unsigned short portNum;
-    std::cin >> portNum;
+    unsigned short portNum = 3003;
 
     // Listen and block execution until we get a connection
     if (listener.listen(portNum) != sf::Socket::Done)
