@@ -48,7 +48,7 @@ add_custom_target(
 
 # Get SFML and box2d libraries
 find_package(OpenGL REQUIRED)
-find_package(SFML COMPONENTS system window graphics main CONFIG REQUIRED)
+find_package(SFML COMPONENTS system window graphics audio main CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(ImGui-SFML CONFIG REQUIRED)
 

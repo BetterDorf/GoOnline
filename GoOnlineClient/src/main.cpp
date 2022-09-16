@@ -1,5 +1,6 @@
 #include <SFML/network.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <iostream>
@@ -49,6 +50,11 @@ int main()
 
     Stone turnToPlay = black;
     bool gameOver = false;
+
+    sf::SoundBuffer clackBuffer;
+    clackBuffer.loadFromFile("data/GoClack.wav");
+    sf::Sound clackSound;
+    clackSound.setBuffer(clackBuffer);
 
     while (window.isOpen())
     {
@@ -330,6 +336,9 @@ int main()
                     // Send the valid move
                     outPacket.clear();
                     outPacket << move;
+
+                    // Play sound
+                    clackSound.play();
 
                     isSending = true;
                 }
