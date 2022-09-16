@@ -106,6 +106,7 @@ int main()
                         break;
                     }
                     default:
+                        validMove = false;
                         break;
                     }
 

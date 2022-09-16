@@ -209,18 +209,19 @@ int main()
                     case abandon:
                     {
                         std::cout << "You win by forfeit!" << std::endl;
-                        return EXIT_SUCCESS;
                     }
                     }
 
                     gobanVisuals.UpdateMove(goban);
                     turnToPlay = playerColour;
+
                 }
                 default:
                     break;
                 }
 
                 inPacket.clear();
+                std::cout << "Packet received" << std::endl;
             }
             else
             {
@@ -235,74 +236,94 @@ int main()
                         isSending = false;
                         turnToPlay = otherColour;
                         gobanVisuals.UpdateMove(goban);
+                        outPacket.clear();
+                        std::cout << "Packet Sent" << std::endl;
                     }
 
                     // No need to read input, just wait on the sending
                     break;
                 }
 
-                // TODO change visuals
-                std::cout << goban.ToString() << std::endl;
-
-                std::cout << "Your turn to play.\ntype X,Y to play\tpass to pass\tabandon to forfeit" << std::endl;
-                std::string input;
-
-                std::cin >> input;
-
                 MovePacket move;
-                bool validMove = true;
-                if (input == "pass")
-                {
-                    move.moveType = pass;
-                }
-                else if (input == "abandon")
-                {
-                    move.moveType = abandon;
-                    gameOver = true;
-                    std::cout << "You lose by forfeit" << std::endl;
-                }
-                else
-                {
-                    // Try to read input as coordinates
-                    // find pos of comma
-                    int i = 0;
-                    bool found = false;
-                    for (; i < input.length(); i++)
-                    {
-                        if (input[i] == ',')
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
+                bool validMove = false;
 
-                    if (!found)
-                    {
-                        validMove = false;
-                    }
+                gobanVisuals.UpdateMouse(sf::Mouse::getPosition(window));
 
-                    try
-                    {
-                        // Invert x and y
-                        int y = stoi(input.substr(0, i)) - 1;
-                        int x = stoi(input.substr(i + 1, input.length() - 1)) - 1;
+                if (gobanVisuals.HasMouseSelection() && mousePressed)
+                {
+                    sf::Vector2i selection = gobanVisuals.getMouseSelection();
 
-                        if (goban.PlayStone(x, y, playerColour))
-                        {
-                            move.moveType = stonePlacement;
-                            move.x = x;
-                            move.y = y;
-                        }
-                        else
-                        {
-                            validMove = false;
-                        }
+                    if (goban.PlayStone(selection.y, selection.x, playerColour))
+                    {
+                        move.moveType = stonePlacement;
+                        move.x = selection.y;
+                        move.y = selection.x;
+                        validMove = true;
                     }
-                    catch (const std::exception&)
+                    else
                     {
                         validMove = false;
                     }
                 }
+
+                //std::cout << "Your turn to play.\ntype X,Y to play\tpass to pass\tabandon to forfeit" << std::endl;
+                //std::string input;
+
+                //std::cin >> input;
+
+                //
+                //if (input == "pass")
+                //{
+                //    move.moveType = pass;
+                //}
+                //else if (input == "abandon")
+                //{
+                //    move.moveType = abandon;
+                //    gameOver = true;
+                //    std::cout << "You lose by forfeit" << std::endl;
+                //}
+                //else
+                //{
+                //    // Try to read input as coordinates
+                //    // find pos of comma
+                //    int i = 0;
+                //    bool found = false;
+                //    for (; i < input.length(); i++)
+                //    {
+                //        if (input[i] == ',')
+                //        {
+                //            found = true;
+                //            break;
+                //        }
+                //    }
+
+                //    if (!found)
+                //    {
+                //        validMove = false;
+                //    }
+
+                //    try
+                //    {
+                //        // Invert x and y
+                //        int y = stoi(input.substr(0, i)) - 1;
+                //        int x = stoi(input.substr(i + 1, input.length() - 1)) - 1;
+
+                //        if (goban.PlayStone(x, y, playerColour))
+                //        {
+                //            move.moveType = stonePlacement;
+                //            move.x = x;
+                //            move.y = y;
+                //        }
+                //        else
+                //        {
+                //            validMove = false;
+                //        }
+                //    }
+                //    catch (const std::exception&)
+                //    {
+                //        validMove = false;
+                //    }
+                //}
 
                 if (validMove)
                 {

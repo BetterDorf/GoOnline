@@ -39,5 +39,8 @@ namespace golc
 		int bCaptures_ = 0;
 		int wCaptures_ = 0;
 		Board stones_;
+
+		Board previousBoardState_;
+		Board prviousBoardWithSamePlayer_;
 	};
 }

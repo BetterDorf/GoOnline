@@ -17,6 +17,9 @@ namespace golc
 				stone = empty;
 			}
 		}
+
+		previousBoardState_ = Board(stones_);
+		prviousBoardWithSamePlayer_ = Board(previousBoardState_);
 	}
 
 	bool Goban::PlayStone(const int x, const int y, const Stone team)
@@ -26,7 +29,7 @@ namespace golc
 		if (stones_.at(x).at(y) != empty)
 			return  false;
 
-		// TODO Check KO
+		previousBoardState_ = Board(stones_);
 
 		// Add the stone
 		stones_.at(x).at(y) = team;
@@ -52,6 +55,34 @@ namespace golc
 			stones_.at(x).at(y) = empty;
 			return  false;
 		}
+
+		// Check for KO
+		bool identical = true;
+		for (int x = 0; x < x_; x++)
+		{
+			for (int y = 0; y < y_; y++)
+			{
+				if (stones_.at(x).at(y) != prviousBoardWithSamePlayer_.at(x).at(y))
+				{
+					identical = false;
+					break;
+				}
+			}
+
+			if (identical == false)
+				break;
+		}
+
+		if (identical)
+		{
+			// Revert to before the move
+			stones_ = Board(previousBoardState_);
+
+			return false;
+		}
+
+		// Update the previous boards
+		prviousBoardWithSamePlayer_ = Board(previousBoardState_);
 
 		return true;
 	}
@@ -92,7 +123,7 @@ namespace golc
 		const int team = StoneAt(pos);
 
 		if (team == 0)
-			return  group;
+			return group;
 
 		group.emplace_back(pos);
 
@@ -109,7 +140,7 @@ namespace golc
 				{
 					if (StoneAt(neighbourPos) == team)
 					{
-						if (std::find(group.begin(), group.end(), neighbourPos) != group.end())
+						if (std::find(group.begin(), group.end(), neighbourPos) == group.end())
 						{
 							group.emplace_back(neighbourPos);
 							stonesAdded.emplace_back(neighbourPos);
