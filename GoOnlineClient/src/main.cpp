@@ -11,6 +11,7 @@
 #include "Goban.h"
 #include "GoGraphics.h"
 #include "ClientGameStates.h"
+#include "Button.h"
 
 int main()
 {
@@ -50,11 +51,24 @@ int main()
 
     Stone turnToPlay = black;
     bool gameOver = false;
+    bool won = false;
 
     sf::SoundBuffer clackBuffer;
     clackBuffer.loadFromFile("data/GoClack.wav");
     sf::Sound clackSound;
     clackSound.setBuffer(clackBuffer);
+
+    // Buttons
+    sf::Font font;
+    font.loadFromFile("data/MontereyFLF.ttf");
+    Button buttonPass = Button(sf::Vector2f(100, 50), "Pass", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
+    buttonPass.setPosition(sf::Vector2f(850, 200));
+    Button buttonConcede = Button(sf::Vector2f(100, 50), "concede", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
+    buttonConcede.setPosition(sf::Vector2f(850, 300));
+
+    sf::Text winText;
+    winText.setFont(font);
+    winText.scale(sf::Vector2f(4, 4));
 
     while (window.isOpen())
     {
@@ -168,7 +182,11 @@ int main()
             // Draw board
             window.draw(gobanVisuals);
 
-            if (gameOver)
+            // Draw buttons
+            window.draw(buttonPass);
+            window.draw(buttonConcede);
+
+            if (gameOver && isSending == false)
             {
                 clientState = done;
                 break;
@@ -214,7 +232,8 @@ int main()
                     }
                     case abandon:
                     {
-                        std::cout << "You win by forfeit!" << std::endl;
+                        clientState = done;
+                        break;
                     }
                     }
 
@@ -253,7 +272,8 @@ int main()
                 MovePacket move;
                 bool validMove = false;
 
-                gobanVisuals.UpdateMouse(sf::Mouse::getPosition(window));
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                gobanVisuals.UpdateMouse(mousePos);
 
                 if (gobanVisuals.HasMouseSelection() && mousePressed)
                 {
@@ -271,65 +291,22 @@ int main()
                         validMove = false;
                     }
                 }
+                else if (mousePressed)
+                {
+                    // Buttons
 
-                //std::cout << "Your turn to play.\ntype X,Y to play\tpass to pass\tabandon to forfeit" << std::endl;
-                //std::string input;
-
-                //std::cin >> input;
-
-                //
-                //if (input == "pass")
-                //{
-                //    move.moveType = pass;
-                //}
-                //else if (input == "abandon")
-                //{
-                //    move.moveType = abandon;
-                //    gameOver = true;
-                //    std::cout << "You lose by forfeit" << std::endl;
-                //}
-                //else
-                //{
-                //    // Try to read input as coordinates
-                //    // find pos of comma
-                //    int i = 0;
-                //    bool found = false;
-                //    for (; i < input.length(); i++)
-                //    {
-                //        if (input[i] == ',')
-                //        {
-                //            found = true;
-                //            break;
-                //        }
-                //    }
-
-                //    if (!found)
-                //    {
-                //        validMove = false;
-                //    }
-
-                //    try
-                //    {
-                //        // Invert x and y
-                //        int y = stoi(input.substr(0, i)) - 1;
-                //        int x = stoi(input.substr(i + 1, input.length() - 1)) - 1;
-
-                //        if (goban.PlayStone(x, y, playerColour))
-                //        {
-                //            move.moveType = stonePlacement;
-                //            move.x = x;
-                //            move.y = y;
-                //        }
-                //        else
-                //        {
-                //            validMove = false;
-                //        }
-                //    }
-                //    catch (const std::exception&)
-                //    {
-                //        validMove = false;
-                //    }
-                //}
+                    if (buttonPass.Contains(mousePos))
+                    {
+                        move.moveType = pass;
+                        validMove = true;
+                    }
+                    else if (buttonConcede.Contains(mousePos))
+                    {
+                        move.moveType = abandon;
+                        validMove = true;
+                        gameOver = true;
+                    }
+                }
 
                 if (validMove)
                 {
@@ -347,6 +324,9 @@ int main()
             break;
         }
         case done:
+            window.draw(gobanVisuals);
+            winText.setString(won ? "YOU WIN" : "YOU LOSE");
+            window.draw(winText);
             break;
         default:
             break;

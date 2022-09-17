@@ -6,11 +6,11 @@
 class Button : public sf::Drawable
 {
 public:
-	Button(sf::Vector2i size);
-	Button(sf::Vector2i size, std::string text, sf::Font font);
-	Button(sf::Vector2i size, std::string text, sf::Font font, sf::Color buttonColor, sf::Color textColor);
+	Button(const sf::Vector2f& size);
+	Button(const sf::Vector2f& size, std::string text, sf::Font& font);
+	Button(const sf::Vector2f& size, std::string text, sf::Font& font, sf::Color buttonColor, sf::Color textColor);
 
-	bool IsIn(sf::Vector2f mousePos);
+	bool Contains(const sf::Vector2i& mousePos);
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void setPosition(const sf::Vector2f& position);
 private:
