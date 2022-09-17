@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SFML/Network.hpp>
+#include <iostream>
 
 #include "Player.h"
 #include "MovePacket.h"
@@ -13,12 +14,24 @@ int main()
     sf::TcpListener listener;
     unsigned short portNum = 3003;
 
+    std::cout << "Public Adress: " << sf::IpAddress::getPublicAddress() << std::endl;
+    std::cout << "Local Adress: " << sf::IpAddress::getLocalAddress() << std::endl;
+
     // Listen and block execution until we get a connection
-    if (listener.listen(portNum) != sf::Socket::Done)
+    bool portBinded = true;
+    do
     {
-        return EXIT_FAILURE;
-        // Error
-    }
+        portBinded = true;
+        if (listener.listen(portNum) != sf::Socket::Done)
+        {
+            std::cerr << "Couldn't bind to port : " << portNum << "\nPlease choose a new port:\n";
+            std::cin >> portNum;
+            portBinded = false;
+        }
+    } while (portBinded == false);
+
+    std::cout << "Binded Port : " << portNum << "\n";
+    
 
     // Accept clients
     Player players[2];
