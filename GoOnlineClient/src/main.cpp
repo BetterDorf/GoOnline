@@ -232,6 +232,7 @@ int main()
                     }
                     case abandon:
                     {
+                        won = true;
                         clientState = done;
                         break;
                     }
@@ -324,6 +325,7 @@ int main()
             break;
         }
         case done:
+            // TODO read game state from goban for points win and separate it from a concede win
             window.draw(gobanVisuals);
             winText.setString(won ? "YOU WIN" : "YOU LOSE");
             window.draw(winText);

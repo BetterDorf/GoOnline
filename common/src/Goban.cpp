@@ -22,6 +22,11 @@ namespace golc
 		prviousBoardWithSamePlayer_ = Board(previousBoardState_);
 	}
 
+	Goban::Goban(int x, int y, double komi) : Goban(x,y)
+	{
+		komi_ = komi;
+	}
+
 	bool Goban::PlayStone(const int x, const int y, const Stone team)
 	{
 		// Check if the play is legal
@@ -244,10 +249,17 @@ namespace golc
 		}
 	}
 
-	void const Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps)
+	void Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const
 	{
 		board = Board(stones_);
 		bCaps = bCaptures_;
 		wCaps = wCaptures_;
+	}
+
+	std::pair<int, int> Goban::ScoreBoard() const
+	{
+		// TODO
+
+		return std::pair<int, int>();
 	}
 }
