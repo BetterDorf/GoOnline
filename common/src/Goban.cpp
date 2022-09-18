@@ -118,17 +118,17 @@ namespace golc
 		return GetGroup(Coord (x, y));
 	}
 
-	Group Goban::GetGroup(const Coord pos) const
+	Group Goban::GetGroup(Coord pos) const
 	{
 		Group group;
 
 		const int team = StoneAt(pos);
 
-		group.emplace(pos);
+		group.emplace_back(pos);
 
 		auto stonesAdded = Group();
 		auto stonesToCheck = Group();
-		stonesToCheck.emplace(pos);
+		stonesToCheck.emplace_back(pos);
 
 		// propagate from the stones that have just been added to the group
 		while (stonesToCheck.empty() == false)
@@ -139,10 +139,11 @@ namespace golc
 				{
 					if (StoneAt(neighbourPos) == team)
 					{
-						if (!group.contains(neighbourPos))
+						// Add the stone if it's not already in our group
+						if (std::find(group.begin(), group.end(), neighbourPos) == group.end())
 						{
-							group.emplace(neighbourPos);
-							stonesAdded.emplace(neighbourPos);
+							group.emplace_back(neighbourPos);
+							stonesAdded.emplace_back(neighbourPos);
 						}
 					}
 				}
@@ -161,22 +162,22 @@ namespace golc
 
 		if (x + 1 < x_)
 		{
-			neighbours.emplace(Coord(x + 1, y));
+			neighbours.emplace_back(Coord(x + 1, y));
 		}
 
 		if (x - 1 >= 0)
 		{
-			neighbours.emplace(Coord(x - 1, y));
+			neighbours.emplace_back(Coord(x - 1, y));
 		}
 
 		if (y - 1 >= 0)
 		{
-			neighbours.emplace(Coord(x, y - 1));
+			neighbours.emplace_back(Coord(x, y - 1));
 		}
 
 		if (y + 1 < y_)
 		{
-			neighbours.emplace(Coord(x, y + 1));
+			neighbours.emplace_back(Coord(x, y + 1));
 		}
 
 		return  neighbours;
@@ -184,32 +185,36 @@ namespace golc
 
 	Group Goban::GetNeighbours(const Group& group) const
 	{
-		Group groupNeighbours;
+		Group groupNeighbours{};
 
 		for (auto& stone : group)
 		{
 			auto neighbours = GetNeighbours(stone);
 			for (auto& neighbour : neighbours)
 			{
-				if (!groupNeighbours.contains(neighbour) && !group.contains(neighbour))
+				// Add the coord if it's not part of our group and not yet in our neighbours
+				if (std::find(groupNeighbours.begin(), groupNeighbours.end(), neighbour) == groupNeighbours.end() &&
+					std::find(group.begin(), group.end(), neighbour) == group.end())
 				{
-					groupNeighbours.emplace(neighbour);
+					groupNeighbours.emplace_back(neighbour);
 				}
 			}
 		}
+
+		return groupNeighbours;
 	}
 
-	Group Goban::GetNeighbours(const Coord pos) const
+	Group Goban::GetNeighbours(Coord pos) const
 	{
 		return GetNeighbours(pos.first, pos.second);
 	}
 
-	Stone Goban::StoneAt(const int x, const int y) const
+	Stone Goban::StoneAt(int x, int y) const
 	{
 		return stones_.at(x).at(y);
 	}
 
-	Stone Goban::StoneAt(const Coord pos) const
+	Stone Goban::StoneAt(Coord pos) const
 	{
 		return StoneAt(pos.first, pos.second);
 	}
@@ -243,7 +248,7 @@ namespace golc
 		return s;
 	}
 
-	void Goban::KillGroup(const Group& group)
+	void Goban::KillGroup(Group& group)
 	{
 		for (auto& stone : group)
 		{
@@ -267,10 +272,10 @@ namespace golc
 		wCaps = wCaptures_;
 	}
 
-	std::pair<int, int> Goban::ScoreBoard() const
+	std::pair<double, double> Goban::ScoreBoard() const
 	{
-		std::unordered_set<Coord> checkedCoords;
-		std::pair<int, int> points = {0, 0};
+		std::vector<Coord> checkedCoords;
+		std::pair<double, double> points((double)bCaptures_, (double)wCaptures_ + komi_);
 
 		// loop over every intersection
 		for (int x = 0; x < x_ ; x++)
@@ -286,13 +291,19 @@ namespace golc
 				}
 
 				// Check if we didn't process it already
-				if (checkedCoords.contains(currentCoord))
+				if (std::find(checkedCoords.begin(), checkedCoords.end(), currentCoord) != checkedCoords.end())
 				{
 					continue;
 				}
 
 				// obtain all empty intersections connected to it
 				Group territory = GetGroup(currentCoord);
+
+				// Add all territory coords in checked coords
+				for (auto& coord : territory)
+				{
+					checkedCoords.emplace_back(coord);
+				}
 
 				// Check if there is one zero or two colours touching it
 				Stone owner = empty;

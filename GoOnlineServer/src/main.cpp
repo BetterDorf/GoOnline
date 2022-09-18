@@ -124,6 +124,7 @@ int main()
                     }
 
                     // Transmit the move
+                    // TODO ask for redo if move is invalid
                     if (validMove)
                     {
                         packet.clear();

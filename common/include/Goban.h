@@ -1,13 +1,14 @@
 #pragma once
-#include <unordered_set>
 #include <vector>
+#include <string>
 
 #include "Stone.h"
 
 namespace golc
 {
 	using Coord = std::pair<int, int>;
-	using Group = std::unordered_set<Coord>;
+
+	using Group = std::vector<Coord>;
 	using Board = std::vector<std::vector<Stone>>;
 
 	class Goban
@@ -21,13 +22,13 @@ namespace golc
 		int CountLiberties(int x, int y) const;
 		int CountLiberties(const Group&) const;
 
-		Group GetGroup(const int x, const int y) const;
-		Group GetGroup(const Coord) const;
+		Group GetGroup(int x, int y) const;
+		Group GetGroup(Coord) const;
 		Group GetNeighbours(int x, int y) const;
 		Group GetNeighbours(Coord) const;
 		Group GetNeighbours(const Group& group) const;
 
-		void KillGroup(const Group&);
+		void KillGroup(Group&);
 
 		Stone StoneAt(int x, int y) const;
 		Stone StoneAt(Coord) const;
@@ -40,7 +41,7 @@ namespace golc
 		/// Score the board as is
 		/// </summary>
 		/// <returns>Pair of scores. First value is black, second is white</returns>
-		std::pair<int, int> ScoreBoard() const;
+		std::pair<double, double> ScoreBoard() const;
 	private:
 		int x_;
 		int y_;
