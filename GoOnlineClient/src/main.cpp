@@ -17,7 +17,9 @@ int main()
 {
     // Create go related variables
     golc::Goban goban(19, 19);
-    goc::GoGraphics gobanVisuals(19);
+    sf::Font font;
+    font.loadFromFile("data/MontereyFLF.ttf");
+    goc::GoGraphics gobanVisuals(19, font);
     Stone playerColour;
     Stone otherColour;
 
@@ -59,12 +61,10 @@ int main()
     clackSound.setBuffer(clackBuffer);
 
     // Buttons
-    sf::Font font;
-    font.loadFromFile("data/MontereyFLF.ttf");
     Button buttonPass = Button(sf::Vector2f(100, 50), "Pass", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
-    buttonPass.setPosition(sf::Vector2f(850, 200));
-    Button buttonConcede = Button(sf::Vector2f(100, 50), "concede", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
-    buttonConcede.setPosition(sf::Vector2f(850, 300));
+    buttonPass.setPosition(sf::Vector2f(850, 400));
+    Button buttonConcede = Button(sf::Vector2f(150, 50), "concede", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
+    buttonConcede.setPosition(sf::Vector2f(1000, 400));
 
     sf::Text winText;
     winText.setFont(font);
@@ -223,6 +223,7 @@ int main()
                     case stonePlacement:
                     {
                         goban.PlayStone(move.x, move.y, otherColour);
+                        clackSound.play();
                         break;
                     }
                     case pass:

@@ -4,9 +4,10 @@
 
 namespace goc
 {
-	GoGraphics::GoGraphics(int size)
+	GoGraphics::GoGraphics(int size, sf::Font& font)
 	{
 		size_ = size;
+		font_ = font;
 
 		bCaps_ = 0;
 		wCaps_ = 0;
@@ -43,6 +44,8 @@ namespace goc
 
 	void GoGraphics::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	{
+		float furthest = 0.0f;
+
 		sf::Sprite sprite;
 		sf::Sprite sprite2;
 
@@ -54,6 +57,9 @@ namespace goc
 			{
 				sprite.setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
 				target.draw(sprite);
+
+				if (sprite.getPosition().x > furthest)
+					furthest = sprite.getPosition().x;
 			}
 		}
 
@@ -65,6 +71,16 @@ namespace goc
 				getPosition().y + mouseSelection_.y * pixelSize_);
 			target.draw(sprite2);
 		}
+
+		// Draw captures
+		sf::Text text;
+		text.setFont(font_);
+		text.setString("White captures : " + std::to_string(wCaps_));
+		text.setPosition(sf::Vector2f(furthest + pixelSize_ + 25, 150));
+		target.draw(text);
+		text.setString("Black captures : " + std::to_string(bCaps_));
+		text.setPosition(sf::Vector2f(furthest + pixelSize_ + 25, 200));
+		target.draw(text);
 
 		if (board_.empty())
 			return;

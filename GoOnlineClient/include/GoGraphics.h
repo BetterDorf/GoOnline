@@ -8,7 +8,7 @@ namespace goc
 	class GoGraphics : public sf::Drawable, public sf::Transformable
 	{
 	public:
-		GoGraphics(int size);
+		GoGraphics(int size, sf::Font& font);
 
 		void UpdateMove(golc::Goban& goban);
 		void UpdateMouse(sf::Vector2i mousePos);
@@ -29,6 +29,7 @@ namespace goc
 		int bCaps_ = 0;
 		golc::Board board_ = golc::Board();
 
+		sf::Font font_;
 		sf::Texture bStonesTxt_;
 		sf::Texture wStonesTxt_;
 		sf::Texture tempStonesTxt_;
