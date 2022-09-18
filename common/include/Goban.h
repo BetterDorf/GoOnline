@@ -63,5 +63,7 @@ namespace golc
 		/// <param name="capturedCount">where to write the amount of stones that would be captured by that move</param>
 		/// <returns>wether the move is allowed or not</returns>
 		bool NaivePlayStone(int x, int y, Stone team, int& capturedCount);
+
+		std::vector<Group> FindDeadGroups() const;
 	};
 }

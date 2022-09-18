@@ -361,4 +361,10 @@ namespace golc
 
 		return points;
 	}
+
+	std::vector<Group> Goban::FindDeadGroups() const
+	{
+		// TODO
+		return std::vector<Group>();
+	}
 }
