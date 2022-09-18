@@ -37,30 +37,10 @@ namespace golc
 
 		previousBoardState_ = Board(stones_);
 
-		// Add the stone
-		stones_.at(x).at(y) = team;
+		int captures = 0;
 
-		// Check if other stones died as a result
-		const auto neighbours = GetNeighbours(x, y);
-		for (const auto& neighbour : neighbours)
-		{
-			Stone stone = StoneAt(neighbour);
-			if (stone != team && stone != empty)
-			{
-				auto group = GetGroup(neighbour);
-				if (CountLiberties(group) == 0)
-				{
-					KillGroup(group);
-				}
-			}
-		}
-
-		// Check self-capture
-		if (CountLiberties(x, y) == 0)
-		{
-			stones_.at(x).at(y) = empty;
-			return  false;
-		}
+		// Play the move on the board without considering KO
+		NaivePlayStone(x, y, team, captures);
 
 		// Check for KO
 		bool identical = true;
@@ -90,7 +70,52 @@ namespace golc
 		// Update the previous boards
 		prviousBoardWithSamePlayer_ = Board(previousBoardState_);
 
+		// Update capture scores
+		if (captures != 0)
+		{
+			if (team == black)
+			{
+				bCaptures_ += captures;
+			}
+			else
+			{
+				wCaptures_ += captures;
+			}
+		}
+
 		return true;
+	}
+
+	bool Goban::NaivePlayStone(const int x, const int y, const Stone team, int& capturedStones)
+	{
+		if (stones_.at(x).at(y) != empty)
+			return  false;
+
+		// Add the stone
+		stones_.at(x).at(y) = team;
+
+		// Check if other stones died as a result
+		const auto neighbours = GetNeighbours(x, y);
+		for (const auto& neighbour : neighbours)
+		{
+			Stone stone = StoneAt(neighbour);
+			if (stone != team && stone != empty)
+			{
+				auto group = GetGroup(neighbour);
+				if (CountLiberties(group) == 0)
+				{
+					capturedStones = group.size();
+					KillGroup(group);
+				}
+			}
+		}
+
+		// Check self-capture
+		if (CountLiberties(x, y) == 0)
+		{
+			stones_.at(x).at(y) = empty;
+			return  false;
+		}
 	}
 
 	int Goban::CountLiberties(int x, int y) const
@@ -252,15 +277,6 @@ namespace golc
 	{
 		for (auto& stone : group)
 		{
-			if (StoneAt(stone) == 1)
-			{
-				wCaptures_++;
-			}
-			else
-			{
-				bCaptures_++;
-			}
-
 			stones_.at(stone.first).at(stone.second) = empty;
 		}
 	}

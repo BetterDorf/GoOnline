@@ -52,5 +52,16 @@ namespace golc
 
 		Board previousBoardState_;
 		Board prviousBoardWithSamePlayer_;
+
+		/// <summary>
+		/// Play a stone ignoring ko and without writing to variables like previous board state and wCaptures_
+		/// But does write to stones_
+		/// </summary>
+		/// <param name="x">the x coordinate of the play</param>
+		/// <param name="y">the y coordinate of the play</param>
+		/// <param name="team">the colour of the stone</param>
+		/// <param name="capturedCount">where to write the amount of stones that would be captured by that move</param>
+		/// <returns>wether the move is allowed or not</returns>
+		bool NaivePlayStone(int x, int y, Stone team, int& capturedCount);
 	};
 }
