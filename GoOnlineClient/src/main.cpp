@@ -55,10 +55,15 @@ int main()
     bool gameOver = false;
     bool won = false;
 
+    // Declare sounds
     sf::SoundBuffer clackBuffer;
     clackBuffer.loadFromFile("data/GoClack.wav");
+    sf::SoundBuffer passBuffer;
+    passBuffer.loadFromFile("data/GoPass.wav");
     sf::Sound clackSound;
     clackSound.setBuffer(clackBuffer);
+    sf::Sound passSound;
+    passSound.setBuffer(passBuffer);
 
     // Buttons
     Button buttonPass = Button(sf::Vector2f(100, 50), "Pass", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
@@ -228,6 +233,8 @@ int main()
                     }
                     case pass:
                     {
+                        passSound.play();
+
                         // Nothing to do, turn will be passed
                         break;
                     }
@@ -284,9 +291,13 @@ int main()
                     if (goban.PlayStone(selection.y, selection.x, playerColour))
                     {
                         move.moveType = stonePlacement;
+
                         move.x = selection.y;
                         move.y = selection.x;
+
                         validMove = true;
+
+                        clackSound.play();
                     }
                     else
                     {
@@ -300,11 +311,15 @@ int main()
                     if (buttonPass.Contains(mousePos))
                     {
                         move.moveType = pass;
+
                         validMove = true;
+
+                        passSound.play();
                     }
                     else if (buttonConcede.Contains(mousePos))
                     {
                         move.moveType = abandon;
+
                         validMove = true;
                         gameOver = true;
                     }
@@ -315,9 +330,6 @@ int main()
                     // Send the valid move
                     outPacket.clear();
                     outPacket << move;
-
-                    // Play sound
-                    clackSound.play();
 
                     isSending = true;
                 }
