@@ -17,12 +17,15 @@ int main()
 {
     // Create go related variables
     golc::Goban goban(19, 19);
-    sf::Font font;
-    font.loadFromFile("data/MontereyFLF.ttf");
-    goc::GoGraphics gobanVisuals(19, font);
+    
     Stone playerColour;
     Stone otherColour;
 
+    Stone turnToPlay = black;
+    bool gameOver = false;
+    bool won = false;
+
+    // Network logic
     sf::TcpSocket socket;
     socket.setBlocking(false);
 
@@ -37,7 +40,6 @@ int main()
         return EXIT_FAILURE;
     }
 
-    // LoopGame logic
     sf::Clock deltaClock;
     ClientState clientState = login;
     std::string ip;
@@ -51,9 +53,10 @@ int main()
     char ipBuffer[30] = "localhost";
     char portBuffer[20] = "3003";
 
-    Stone turnToPlay = black;
-    bool gameOver = false;
-    bool won = false;
+    // Visuals and Sound
+    sf::Font font;
+    font.loadFromFile("data/MontereyFLF.ttf");
+    goc::GoGraphics gobanVisuals(19, font);
 
     // Declare sounds
     sf::SoundBuffer clackBuffer;

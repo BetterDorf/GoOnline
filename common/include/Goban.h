@@ -7,7 +7,7 @@
 namespace golc
 {
 	using Coord = std::pair<int, int>;
-	using Group = std::vector<Coord>;
+	using Group = std::unordered_set<Coord>;
 	using Board = std::vector<std::vector<Stone>>;
 
 	class Goban
@@ -18,18 +18,19 @@ namespace golc
 
 		bool PlayStone(int x, int y, Stone team);
 
-		int CountLiberties(int x, int y);
-		int CountLiberties(const Group&);
+		int CountLiberties(int x, int y) const;
+		int CountLiberties(const Group&) const;
 
-		Group GetGroup(int x, int y);
-		Group GetGroup(Coord);
+		Group GetGroup(const int x, const int y) const;
+		Group GetGroup(const Coord) const;
 		Group GetNeighbours(int x, int y) const;
 		Group GetNeighbours(Coord) const;
+		Group GetNeighbours(const Group& group) const;
 
 		void KillGroup(const Group&);
 
-		Stone StoneAt(int x, int y);
-		Stone StoneAt(Coord);
+		Stone StoneAt(int x, int y) const;
+		Stone StoneAt(Coord) const;
 
 		void ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const;
 

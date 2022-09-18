@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 namespace golc
 {
@@ -92,49 +93,42 @@ namespace golc
 		return true;
 	}
 
-	int Goban::CountLiberties(int x, int y)
+	int Goban::CountLiberties(int x, int y) const
 	{
 		return CountLiberties(GetGroup(x, y));
 	}
 
-	int Goban::CountLiberties(const Group& group)
+	int Goban::CountLiberties(const Group& group) const
 	{
-		Group liberties;
-	
-		for (auto& stone : group)
+		int liberties = 0;
+
+		for (auto& neighbourCoord : GetNeighbours(group))
 		{
-			auto neighbours = GetNeighbours(stone);
-			for(auto& neighbour : neighbours)
+			if (StoneAt(neighbourCoord) == empty)
 			{
-				if (StoneAt(neighbour) == empty) 
-				{
-					liberties.emplace_back(neighbour);
-				}
+				liberties += 1;
 			}
 		}
 
-		return liberties.size();
+		return liberties;
 	}
 
-	Group Goban::GetGroup(int x, int y)
+	Group Goban::GetGroup(int x, int y) const
 	{
 		return GetGroup(Coord (x, y));
 	}
 
-	Group Goban::GetGroup(const Coord pos)
+	Group Goban::GetGroup(const Coord pos) const
 	{
 		Group group;
 
 		const int team = StoneAt(pos);
 
-		if (team == 0)
-			return group;
-
-		group.emplace_back(pos);
+		group.emplace(pos);
 
 		auto stonesAdded = Group();
 		auto stonesToCheck = Group();
-		stonesToCheck.emplace_back(pos);
+		stonesToCheck.emplace(pos);
 
 		// propagate from the stones that have just been added to the group
 		while (stonesToCheck.empty() == false)
@@ -145,10 +139,10 @@ namespace golc
 				{
 					if (StoneAt(neighbourPos) == team)
 					{
-						if (std::find(group.begin(), group.end(), neighbourPos) == group.end())
+						if (!group.contains(neighbourPos))
 						{
-							group.emplace_back(neighbourPos);
-							stonesAdded.emplace_back(neighbourPos);
+							group.emplace(neighbourPos);
+							stonesAdded.emplace(neighbourPos);
 						}
 					}
 				}
@@ -167,25 +161,42 @@ namespace golc
 
 		if (x + 1 < x_)
 		{
-			neighbours.emplace_back(Coord(x + 1, y));
+			neighbours.emplace(Coord(x + 1, y));
 		}
 
 		if (x - 1 >= 0)
 		{
-			neighbours.emplace_back(Coord(x - 1, y));
+			neighbours.emplace(Coord(x - 1, y));
 		}
 
 		if (y - 1 >= 0)
 		{
-			neighbours.emplace_back(Coord(x, y - 1));
+			neighbours.emplace(Coord(x, y - 1));
 		}
 
 		if (y + 1 < y_)
 		{
-			neighbours.emplace_back(Coord(x, y + 1));
+			neighbours.emplace(Coord(x, y + 1));
 		}
 
 		return  neighbours;
+	}
+
+	Group Goban::GetNeighbours(const Group& group) const
+	{
+		Group groupNeighbours;
+
+		for (auto& stone : group)
+		{
+			auto neighbours = GetNeighbours(stone);
+			for (auto& neighbour : neighbours)
+			{
+				if (!groupNeighbours.contains(neighbour) && !group.contains(neighbour))
+				{
+					groupNeighbours.emplace(neighbour);
+				}
+			}
+		}
 	}
 
 	Group Goban::GetNeighbours(const Coord pos) const
@@ -193,12 +204,12 @@ namespace golc
 		return GetNeighbours(pos.first, pos.second);
 	}
 
-	Stone Goban::StoneAt(const int x, const int y)
+	Stone Goban::StoneAt(const int x, const int y) const
 	{
 		return stones_.at(x).at(y);
 	}
 
-	Stone Goban::StoneAt(const Coord pos)
+	Stone Goban::StoneAt(const Coord pos) const
 	{
 		return StoneAt(pos.first, pos.second);
 	}
@@ -258,8 +269,69 @@ namespace golc
 
 	std::pair<int, int> Goban::ScoreBoard() const
 	{
-		// TODO
+		std::unordered_set<Coord> checkedCoords;
+		std::pair<int, int> points = {0, 0};
 
-		return std::pair<int, int>();
+		// loop over every intersection
+		for (int x = 0; x < x_ ; x++)
+		{
+			for (int y = 0 ; y < y_ ; y++)
+			{
+				Coord currentCoord(x,y);
+
+				// Check if it's empty
+				if (StoneAt(currentCoord) != empty)
+				{
+					continue;
+				}
+
+				// Check if we didn't process it already
+				if (checkedCoords.contains(currentCoord))
+				{
+					continue;
+				}
+
+				// obtain all empty intersections connected to it
+				Group territory = GetGroup(currentCoord);
+
+				// Check if there is one zero or two colours touching it
+				Stone owner = empty;
+				bool scorePoints = true;
+				for (auto& neighbourCoord : GetNeighbours(territory))
+				{
+					Stone stone = StoneAt(neighbourCoord);
+
+					// Check if the stone is different than the current owner
+					if (stone != empty && stone != owner)
+					{
+						// Score no points if this territory already had an owner
+						if (owner != empty)
+						{
+							scorePoints = false;
+							continue;
+						}
+						else
+						{
+							owner = stone;
+						}
+					}
+				}
+
+				// Give points according to that
+				if (scorePoints && owner != empty)
+				{
+					if (owner == black)
+					{
+						points.first += territory.size();
+					}
+					else
+					{
+						points.second += territory.size();
+					}
+				}
+			}
+		}
+
+		return points;
 	}
 }
