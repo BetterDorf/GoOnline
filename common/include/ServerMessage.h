@@ -8,6 +8,7 @@ enum MessageType
 	waiting,
 	gameStarted,
 	invalidMove,
+	scoring,
 	win,
 	lose
 };

@@ -217,9 +217,40 @@ int main()
                     ServerMessage message;
                     inPacket >> message;
 
-                    // TODO respond to server
-
                     // TODO logic to cancel moves if server disapprove
+
+                    switch (message.msgType)
+                    {
+                    case scoring:
+                    {
+                        gameOver = true;
+
+                        auto scores = goban.ScoreBoard();
+                        double playerScore, otherScore;
+                        if (playerColour == black)
+                        {
+                            playerScore = scores.first;
+                            otherScore = scores.second;
+                        }
+                        else
+                        {
+                            playerScore = scores.second;
+                            otherScore = scores.first;
+                        }
+                        if (playerScore > otherScore)
+                        {
+                            won = true;
+                        }
+                        else
+                        {
+                            won = false;
+                        }
+
+                        break;
+                    }
+                    default:
+                        break;
+                    }
                 }
                 case move:
                 {

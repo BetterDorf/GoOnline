@@ -11,6 +11,8 @@ int main()
 {
     golc::Goban goban(19, 19);
 
+    bool consecutivePass = false;
+
     sf::TcpListener listener;
     unsigned short portNum = 3003;
 
@@ -32,7 +34,6 @@ int main()
 
     std::cout << "Binded Port : " << portNum << "\n";
     
-
     // Accept clients
     Player players[2];
     listener.accept(players[0].clientConnection);
@@ -95,6 +96,7 @@ int main()
                         // Play the move
                         if (goban.PlayStone(move.x, move.y, toPlay))
                         {
+                            consecutivePass = false;
                             validMove = true;
                         }
                         else
@@ -110,6 +112,25 @@ int main()
                     case pass:
                     {
                         // Pass is always valid
+
+                        if (consecutivePass)
+                        {
+                            //Game ends
+                            packet.clear();
+                            serverMessage.msgType = scoring;
+                            packet << serverMessage;
+
+                            // Send to all
+                            for (auto& player : players)
+                            {
+                                player.clientConnection.send(packet);
+                            }
+
+                            return EXIT_SUCCESS;
+                        }
+
+                        consecutivePass = true;
+
                         break;
                     }
                     case abandon:
