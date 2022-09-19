@@ -1,3 +1,4 @@
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #include "GoGraphics.h"
 
 namespace gog
@@ -57,6 +58,8 @@ namespace gog
 		sf::Sprite sprite;
 		sf::Sprite sprite2;
 
+		const sf::Color transparentColour = sf::Color(255, 255, 255, 122);
+
 		// draw squares and mouse selection
 		sprite.setTexture(goTileTxt_);
 		for (int x = 0; x < size_; x++)
@@ -72,13 +75,15 @@ namespace gog
 		}
 
 		// Draw mouse selection
-		sprite2.setTexture(tempStonesTxt_);
+		sprite2.setTexture(playerColour_ == black ? bStonesTxt_ : wStonesTxt_);
+		sprite2.setColor(transparentColour);
 		if (mouseHasSelection_)
 		{
 			sprite2.setPosition(getPosition().x + mouseSelection_.x * pixelSize_,
 				getPosition().y + mouseSelection_.y * pixelSize_);
 			target.draw(sprite2);
 		}
+		sprite2.setColor(sf::Color::White);
 
 		// Draw captures
 		sf::Text text;
@@ -103,21 +108,30 @@ namespace gog
 			{
 				const Stone stone = board_.at(y).at(x);
 
+				sf::Sprite* spriteToDraw = &sprite2;
+
+				if (stone == empty)
+				{
+					continue;
+				}
+
 				if (stone == black)
 				{
-					sprite.setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
-					target.draw(sprite);
+					spriteToDraw = &sprite;
 				}
 				else if (stone == white)
 				{
-					sprite2.setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
-					target.draw(sprite2);
+					spriteToDraw = &sprite2;
 				}
+
+				if (deadBoard_.at(y).at(x))
+					spriteToDraw->setColor(transparentColour);
+
+				spriteToDraw->setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
+				target.draw(*spriteToDraw);
+
+				spriteToDraw->setColor(sf::Color::White);
 			}
 		}
-
-		// TODO draw capture count
-
-		// TODO draw mouse ui preview
 	}
 }

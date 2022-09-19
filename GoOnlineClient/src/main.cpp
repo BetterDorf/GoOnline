@@ -55,7 +55,7 @@ int main()
     // Visuals and Sound
     sf::Font font;
     font.loadFromFile("data/MontereyFLF.ttf");
-    goc::GoGraphics gobanVisuals(19, font);
+    gog::GoGraphics gobanVisuals(19, font);
 
     // Declare sounds
     sf::SoundBuffer clackBuffer;
@@ -178,6 +178,7 @@ int main()
                     std::cout << "You play white" << std::endl;
                 }
 
+                gobanVisuals.SetPlayerColour(playerColour);
                 clientState = playing;
             }
 
@@ -375,10 +376,11 @@ int main()
             break;
         }
         case scoringPhase:
-        {
-            window.draw(gobanVisuals);
-	        break;
-        }
+		    {
+		        window.draw(gobanVisuals);
+
+		        break;
+		    }
         case done:
             // TODO read game state from goban for points win and separate it from a concede win
             window.draw(gobanVisuals);

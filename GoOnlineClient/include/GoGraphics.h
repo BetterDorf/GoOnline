@@ -10,7 +10,8 @@ namespace gog
 	public:
 		GoGraphics(int size, const sf::Font& font);
 
-		void UpdateMove(golc::Goban& goban);
+		void SetPlayerColour(const Stone playerColour) { playerColour_ = playerColour; }
+		void UpdateMove(const golc::Goban& goban);
 		void UpdateMouse(sf::Vector2i mousePos);
 		bool HasMouseSelection() const { return mouseHasSelection_; }
 		sf::Vector2i getMouseSelection() const { return mouseSelection_; }
@@ -19,6 +20,7 @@ namespace gog
 
 	private:
 		int size_;
+		Stone playerColour_ = black;
 		// size in pixel of a grid square
 		int pixelSize_;
 		
