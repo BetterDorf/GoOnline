@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <map>
 
 #include "Stone.h"
 
@@ -42,6 +43,8 @@ namespace golc
 		/// </summary>
 		/// <returns>Pair of scores. First value is black, second is white</returns>
 		[[nodiscard]] std::pair<double, double> ScoreBoard() const;
+
+		void GenerateGroupIds();
 	private:
 		int x_;
 		int y_;
@@ -52,6 +55,8 @@ namespace golc
 
 		Board previousBoardState_;
 		Board prviousBoardWithSamePlayer_;
+
+		std::map<int, Group> groupsById = {};
 
 		/// <summary>
 		/// Play a stone ignoring ko and without writing to variables like previous board state and wCaptures_

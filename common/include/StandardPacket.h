@@ -4,7 +4,8 @@
 enum PacketType : int
 {
 	serverMessage = 0,
-	move = 1
+	move = 1,
+	deadGroup = 2
 };
 
 struct StandardPacket

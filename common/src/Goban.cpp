@@ -362,6 +362,40 @@ namespace golc
 		return points;
 	}
 
+	void Goban::GenerateGroupIds()
+	{
+		// Loop over every intersection
+		for (int x = 0; x < x_; x++)
+		{
+			for (int y = 0; y < y_ ; y++)
+			{
+				// Check if it's empty
+				if (StoneAt(x,y) == empty)
+					continue;
+
+				Coord coord(x,y);
+
+				bool contained = false;
+				for (const auto& group : groupsById | std::views::values)
+				{
+					if (std::ranges::find(group, coord) != group.end())
+					{
+						contained = true;
+						break;
+					}
+				}
+				if (contained)
+				{
+					continue;
+				}
+			}
+		}
+
+		// Get group
+
+		// Add Group to groupsById
+	}
+
 	std::vector<Group> Goban::FindDeadGroups() const
 	{
 		// Find all groups
