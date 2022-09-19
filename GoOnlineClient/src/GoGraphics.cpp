@@ -1,16 +1,24 @@
 #include "GoGraphics.h"
 
-#include <math.h>
-
-namespace goc
+namespace gog
 {
-	GoGraphics::GoGraphics(int size, sf::Font& font)
+	GoGraphics::GoGraphics(const int size, const sf::Font& font)
 	{
 		size_ = size;
 		font_ = font;
 
 		bCaps_ = 0;
 		wCaps_ = 0;
+
+		for (int x = 0; x < size ; x++)
+		{
+			deadBoard_.emplace_back(std::vector<bool>());
+
+			for (int y = 0; y < size; y++)
+			{
+				deadBoard_.at(x).emplace_back(false);
+			}
+		}
 
 		bStonesTxt_.loadFromFile("data/BStone.png");
 		wStonesTxt_.loadFromFile("data/WStone.png");
@@ -20,17 +28,17 @@ namespace goc
 		pixelSize_ = goTileTxt_.getSize().x;
 	}
 
-	void GoGraphics::UpdateMove(golc::Goban& goban)
+	void GoGraphics::UpdateMove(const golc::Goban& goban)
 	{
 		// read and update stones positions and current capture counts
 		goban.ReadBoardInfo(board_, bCaps_, wCaps_);
 	}
 
-	void GoGraphics::UpdateMouse(sf::Vector2i mousePos)
+	void GoGraphics::UpdateMouse(const sf::Vector2i mousePos)
 	{
-		sf::Vector2f mousePosf(mousePos);
-		sf::Vector2f relativePos = (mousePosf /(float) pixelSize_) - getPosition();
-		sf::Vector2i mouseGridPos((int)relativePos.x, (int)relativePos.y);
+		const sf::Vector2f mousePosf(mousePos);
+		const sf::Vector2f relativePos = (mousePosf /static_cast<float>(pixelSize_)) - getPosition();
+		const sf::Vector2i mouseGridPos((int)relativePos.x, (int)relativePos.y);
 
 		if (mouseGridPos.x < 0 || mouseGridPos.y < 0 || mouseGridPos.x >= size_ || mouseGridPos.y >= size_)
 		{
@@ -86,13 +94,14 @@ namespace goc
 			return;
 
 		// draw stones
+		// TODO draw them transparently if they are dead on the dead board
 		sprite.setTexture(bStonesTxt_);
 		sprite2.setTexture(wStonesTxt_);
 		for (int x = 0; x < size_; x++)
 		{
 			for (int y = 0; y < size_; y++)
 			{
-				Stone stone = board_.at(y).at(x);
+				const Stone stone = board_.at(y).at(x);
 
 				if (stone == black)
 				{

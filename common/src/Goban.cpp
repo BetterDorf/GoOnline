@@ -1,6 +1,7 @@
 #include  "Goban.h"
 
 #include <algorithm>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -86,7 +87,7 @@ namespace golc
 		return true;
 	}
 
-	bool Goban::NaivePlayStone(const int x, const int y, const Stone team, int& capturedStones)
+	bool Goban::NaivePlayStone(const int x, const int y, const Stone team, int& capturedCount)
 	{
 		if (stones_.at(x).at(y) != empty)
 			return  false;
@@ -95,16 +96,13 @@ namespace golc
 		stones_.at(x).at(y) = team;
 
 		// Check if other stones died as a result
-		const auto neighbours = GetNeighbours(x, y);
-		for (const auto& neighbour : neighbours)
+		for (const auto neighbours = GetNeighbours(x, y); const auto& neighbour : neighbours)
 		{
-			Stone stone = StoneAt(neighbour);
-			if (stone != team && stone != empty)
+			if (const Stone stone = StoneAt(neighbour); stone != team && stone != empty)
 			{
-				auto group = GetGroup(neighbour);
-				if (CountLiberties(group) == 0)
+				if (auto group = GetGroup(neighbour); CountLiberties(group) == 0)
 				{
-					capturedStones = group.size();
+					capturedCount = group.size();
 					KillGroup(group);
 				}
 			}
@@ -116,9 +114,11 @@ namespace golc
 			stones_.at(x).at(y) = empty;
 			return  false;
 		}
+
+		return true;
 	}
 
-	int Goban::CountLiberties(int x, int y) const
+	int Goban::CountLiberties(const int x, const int y) const
 	{
 		return CountLiberties(GetGroup(x, y));
 	}
@@ -127,7 +127,7 @@ namespace golc
 	{
 		int liberties = 0;
 
-		for (auto& neighbourCoord : GetNeighbours(group))
+		for (const auto& neighbourCoord : GetNeighbours(group))
 		{
 			if (StoneAt(neighbourCoord) == empty)
 			{
@@ -165,7 +165,7 @@ namespace golc
 					if (StoneAt(neighbourPos) == team)
 					{
 						// Add the stone if it's not already in our group
-						if (std::find(group.begin(), group.end(), neighbourPos) == group.end())
+						if (std::ranges::find(group, neighbourPos) == group.end())
 						{
 							group.emplace_back(neighbourPos);
 							stonesAdded.emplace_back(neighbourPos);
@@ -218,8 +218,8 @@ namespace golc
 			for (auto& neighbour : neighbours)
 			{
 				// Add the coord if it's not part of our group and not yet in our neighbours
-				if (std::find(groupNeighbours.begin(), groupNeighbours.end(), neighbour) == groupNeighbours.end() &&
-					std::find(group.begin(), group.end(), neighbour) == group.end())
+				if (std::ranges::find(groupNeighbours, neighbour) == groupNeighbours.end() &&
+					std::ranges::find(group, neighbour) == group.end())
 				{
 					groupNeighbours.emplace_back(neighbour);
 				}
@@ -229,17 +229,17 @@ namespace golc
 		return groupNeighbours;
 	}
 
-	Group Goban::GetNeighbours(Coord pos) const
+	Group Goban::GetNeighbours(const Coord pos) const
 	{
 		return GetNeighbours(pos.first, pos.second);
 	}
 
-	Stone Goban::StoneAt(int x, int y) const
+	Stone Goban::StoneAt(const int x, const int y) const
 	{
 		return stones_.at(x).at(y);
 	}
 
-	Stone Goban::StoneAt(Coord pos) const
+	Stone Goban::StoneAt(const Coord pos) const
 	{
 		return StoneAt(pos.first, pos.second);
 	}
@@ -248,9 +248,9 @@ namespace golc
 	{
 		std::string s;
 
-		for (auto it = stones_.rbegin(); it != stones_.rend(); ++it)
+		for (auto& it : std::ranges::reverse_view(stones_))
 		{
-			for (const auto& stone : *it)
+			for (const auto& stone : it)
 			{
 				if (stone == empty)
 					s += "+";
@@ -273,7 +273,7 @@ namespace golc
 		return s;
 	}
 
-	void Goban::KillGroup(Group& group)
+	void Goban::KillGroup(const Group& group)
 	{
 		for (auto& stone : group)
 		{
@@ -291,7 +291,7 @@ namespace golc
 	std::pair<double, double> Goban::ScoreBoard() const
 	{
 		std::vector<Coord> checkedCoords;
-		std::pair<double, double> points((double)bCaptures_, (double)wCaptures_ + komi_);
+		std::pair<double, double> points(static_cast<double>(bCaptures_), static_cast<double>(wCaptures_) + komi_);
 
 		// loop over every intersection
 		for (int x = 0; x < x_ ; x++)
@@ -307,7 +307,7 @@ namespace golc
 				}
 
 				// Check if we didn't process it already
-				if (std::find(checkedCoords.begin(), checkedCoords.end(), currentCoord) != checkedCoords.end())
+				if (std::ranges::find(checkedCoords, currentCoord) != checkedCoords.end())
 				{
 					continue;
 				}
@@ -324,9 +324,9 @@ namespace golc
 				// Check if there is one zero or two colours touching it
 				Stone owner = empty;
 				bool scorePoints = true;
-				for (auto& neighbourCoord : GetNeighbours(territory))
+				for (const auto& neighbourCoord : GetNeighbours(territory))
 				{
-					Stone stone = StoneAt(neighbourCoord);
+					const Stone stone = StoneAt(neighbourCoord);
 
 					// Check if the stone is different than the current owner
 					if (stone != empty && stone != owner)
@@ -364,7 +364,10 @@ namespace golc
 
 	std::vector<Group> Goban::FindDeadGroups() const
 	{
-		// TODO
-		return std::vector<Group>();
+		// Find all groups
+
+		// Test if they can be killed
+
+		return {};
 	}
 }

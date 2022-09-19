@@ -19,19 +19,19 @@ namespace golc
 
 		bool PlayStone(int x, int y, Stone team);
 
-		int CountLiberties(int x, int y) const;
-		int CountLiberties(const Group&) const;
+		[[nodiscard]] int CountLiberties(int x, int y) const;
+		[[nodiscard]] int CountLiberties(const Group&) const;
 
-		Group GetGroup(int x, int y) const;
-		Group GetGroup(Coord) const;
-		Group GetNeighbours(int x, int y) const;
-		Group GetNeighbours(Coord) const;
-		Group GetNeighbours(const Group& group) const;
+		[[nodiscard]] Group GetGroup(int x, int y) const;
+		[[nodiscard]] Group GetGroup(Coord) const;
+		[[nodiscard]] Group GetNeighbours(int x, int y) const;
+		[[nodiscard]] Group GetNeighbours(Coord) const;
+		[[nodiscard]] Group GetNeighbours(const Group& group) const;
 
-		void KillGroup(Group&);
+		void KillGroup(const Group&);
 
-		Stone StoneAt(int x, int y) const;
-		Stone StoneAt(Coord) const;
+		[[nodiscard]] Stone StoneAt(int x, int y) const;
+		[[nodiscard]] Stone StoneAt(Coord) const;
 
 		void ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const;
 
@@ -41,7 +41,7 @@ namespace golc
 		/// Score the board as is
 		/// </summary>
 		/// <returns>Pair of scores. First value is black, second is white</returns>
-		std::pair<double, double> ScoreBoard() const;
+		[[nodiscard]] std::pair<double, double> ScoreBoard() const;
 	private:
 		int x_;
 		int y_;
@@ -64,6 +64,6 @@ namespace golc
 		/// <returns>wether the move is allowed or not</returns>
 		bool NaivePlayStone(int x, int y, Stone team, int& capturedCount);
 
-		std::vector<Group> FindDeadGroups() const;
+		[[nodiscard]] std::vector<Group> FindDeadGroups() const;
 	};
 }

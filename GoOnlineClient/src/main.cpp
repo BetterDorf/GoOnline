@@ -4,7 +4,6 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <iostream>
-#include<string.h>
 
 #include "MovePacket.h"
 #include "ServerMessage.h"
@@ -69,9 +68,9 @@ int main()
     passSound.setBuffer(passBuffer);
 
     // Buttons
-    Button buttonPass = Button(sf::Vector2f(100, 50), "Pass", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
+    auto buttonPass = Button(sf::Vector2f(100, 50), "Pass", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
     buttonPass.setPosition(sf::Vector2f(850, 400));
-    Button buttonConcede = Button(sf::Vector2f(150, 50), "concede", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
+    auto buttonConcede = Button(sf::Vector2f(150, 50), "concede", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
     buttonConcede.setPosition(sf::Vector2f(1000, 400));
 
     sf::Text winText;
@@ -196,6 +195,7 @@ int main()
 
             if (gameOver && isSending == false)
             {
+                //  Game is done and no message is sending
                 clientState = done;
                 break;
             }
@@ -251,6 +251,8 @@ int main()
                     default:
                         break;
                     }
+
+                	break;
                 }
                 case move:
                 {
@@ -283,6 +285,7 @@ int main()
                     gobanVisuals.UpdateMove(goban);
                     turnToPlay = playerColour;
 
+                    break;
                 }
                 default:
                     break;
@@ -370,6 +373,11 @@ int main()
             }
 
             break;
+        }
+        case scoringPhase:
+        {
+            window.draw(gobanVisuals);
+	        break;
         }
         case done:
             // TODO read game state from goban for points win and separate it from a concede win

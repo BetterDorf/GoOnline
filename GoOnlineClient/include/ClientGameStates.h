@@ -6,5 +6,6 @@ enum ClientState
 	connecting,
 	waitingForPlayer,
 	playing,
+	scoringPhase,
 	done
 };

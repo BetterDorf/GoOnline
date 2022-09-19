@@ -3,23 +3,23 @@
 
 #include "Goban.h"
 
-namespace goc
+namespace gog
 {
-	class GoGraphics : public sf::Drawable, public sf::Transformable
+	class GoGraphics final : public sf::Drawable, public sf::Transformable
 	{
 	public:
-		GoGraphics(int size, sf::Font& font);
+		GoGraphics(int size, const sf::Font& font);
 
 		void UpdateMove(golc::Goban& goban);
 		void UpdateMouse(sf::Vector2i mousePos);
-		bool HasMouseSelection() { return mouseHasSelection_; }
-		sf::Vector2i getMouseSelection() { return mouseSelection_; }
+		bool HasMouseSelection() const { return mouseHasSelection_; }
+		sf::Vector2i getMouseSelection() const { return mouseSelection_; }
 
 		void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 	private:
 		int size_;
-		// size in pixel of a gird square
+		// size in pixel of a grid square
 		int pixelSize_;
 		
 		bool mouseHasSelection_ = false;
@@ -28,6 +28,7 @@ namespace goc
 		int wCaps_ = 0;
 		int bCaps_ = 0;
 		golc::Board board_ = golc::Board();
+		std::vector<std::vector<bool>> deadBoard_;
 
 		sf::Font font_;
 		sf::Texture bStonesTxt_;
