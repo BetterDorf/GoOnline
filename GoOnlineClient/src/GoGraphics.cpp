@@ -33,6 +33,8 @@ namespace gog
 		goCornerTRTxt_.loadFromFile("data/CornerTR.png");
 		goCornerBLTxt_.loadFromFile("data/CornerBL.png");
 		goCornerBRTxt_.loadFromFile("data/CornerBR.png");
+		whiteCircleTxt_.loadFromFile("data/WhiteCircle.png");
+		blackCircleTxt_.loadFromFile("data/BlackCircle.png");
 
 		pixelSize_ = goTileTxt_.getSize().x;
 	}
@@ -40,7 +42,7 @@ namespace gog
 	void GoGraphics::UpdateMove(const golc::Goban& goban)
 	{
 		// read and update stones positions and current capture counts
-		goban.ReadBoardInfo(board_, bCaps_, wCaps_);
+		goban.ReadBoardInfo(board_, bCaps_, wCaps_, lastMove_);
 	}
 
 	void GoGraphics::UpdateCaptureCount(const golc::Goban& goban)
@@ -230,6 +232,23 @@ namespace gog
 
 				spriteToDraw->setColor(sf::Color::White);
 			}
+		}
+
+		// Draw last move circle
+		if (Stone lastStone = board_.at(lastMove_.first).at(lastMove_.second) ; lastStone != empty)
+		{
+			if (lastStone == white)
+			{
+				sprite.setTexture(blackCircleTxt_);
+			}
+			else
+			{
+				sprite.setTexture(whiteCircleTxt_);
+			}
+
+			sprite.setPosition(getPosition().x + lastMove_.second * pixelSize_,
+				getPosition().y + lastMove_.first * pixelSize_);
+			target.draw(sprite);
 		}
 	}
 }

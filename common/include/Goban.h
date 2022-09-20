@@ -40,8 +40,9 @@ namespace golc
 		[[nodiscard]] Stone StoneAt(int x, int y) const;
 		[[nodiscard]] Stone StoneAt(Coord) const;
 
-		void ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const;
+		void ReadBoardInfo(Board& board, int& bCaps, int& wCaps, Coord& lastMove) const;
 		void ReadCaptures(int& bCaps, int& wCaps) const;
+		Coord GetLastMove() const { return lastMove_; }
 
 		std::string ToString();
 
@@ -65,6 +66,7 @@ namespace golc
 		Board prviousBoardWithSamePlayer_;
 
 		std::map<int, Group> groupsById_ = {};
+		Coord lastMove_ = {0,0};
 
 		/// <summary>
 		/// Play a stone ignoring ko and without writing to variables like previous board state and wCaptures_

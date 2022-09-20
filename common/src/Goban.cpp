@@ -45,11 +45,11 @@ namespace golc
 
 		// Check for KO
 		bool identical = true;
-		for (int x = 0; x < x_; x++)
+		for (int posx = 0; posx < x_; posx++)
 		{
-			for (int y = 0; y < y_; y++)
+			for (int posy = 0; posy < y_; posy++)
 			{
-				if (stones_.at(x).at(y) != prviousBoardWithSamePlayer_.at(x).at(y))
+				if (stones_.at(posx).at(posy) != prviousBoardWithSamePlayer_.at(posx).at(posy))
 				{
 					identical = false;
 					break;
@@ -83,6 +83,9 @@ namespace golc
 				wCaptures_ += captures;
 			}
 		}
+
+		// Register the move
+		lastMove_ = {x,y};
 
 		return true;
 	}
@@ -303,11 +306,12 @@ namespace golc
 		stones_.at(stone.first).at(stone.second) = empty;
 	}
 
-	void Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const
+	void Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps, Coord& lastMove) const
 	{
 		board = Board(stones_);
 		bCaps = bCaptures_;
 		wCaps = wCaptures_;
+		lastMove = lastMove_;
 	}
 
 	void Goban::ReadCaptures(int& bCaps, int& wCaps) const

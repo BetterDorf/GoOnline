@@ -36,6 +36,7 @@ namespace gog
 		int bCaps_ = 0;
 		golc::Board board_ = golc::Board();
 		std::vector<std::vector<bool>> deadBoard_;
+		golc::Coord lastMove_ = {0,0};
 
 		sf::Font font_;
 		sf::Texture bStonesTxt_;
@@ -50,5 +51,8 @@ namespace gog
 		sf::Texture goCornerTRTxt_;
 		sf::Texture goCornerBLTxt_;
 		sf::Texture goCornerBRTxt_;
+
+		sf::Texture whiteCircleTxt_;
+		sf::Texture blackCircleTxt_;
 	};
 }
