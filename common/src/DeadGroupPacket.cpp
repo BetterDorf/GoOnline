@@ -1,13 +1,13 @@
 #include "DeadGroupPacket.h"
 
-DeadGroupPacket::DeadGroupPacket()
+DeadGroupPacket::DeadGroupPacket() : StandardPacket()
 {
 	type = deadGroup;
 }
 
 sf::Packet& operator <<(sf::Packet& packet, const DeadGroupPacket& deadPacket)
 {
-	packet << deadPacket.step << deadPacket.groupId;
+	packet << deadPacket.type << deadPacket.step << deadPacket.groupId;
 	return packet;
 }
 

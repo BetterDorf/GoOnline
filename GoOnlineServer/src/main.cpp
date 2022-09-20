@@ -75,11 +75,7 @@ int main()
         {
             for (auto& curPlayer : players)
             {
-                if (curPlayer.colour != toPlay)
-                {
-                    // Player sent move at incorrect time
-                }
-                else if (selector.isReady(curPlayer.clientConnection))
+                if (selector.isReady(curPlayer.clientConnection))
                 {
                     // Receive data from client
                     packet.clear();
@@ -90,6 +86,12 @@ int main()
                     case PacketType::serverMessage: break;
                     case move:
 	                    {
+                        if (curPlayer.colour != toPlay)
+                        {
+                            // Player sent move at incorrect time
+                            break;
+                        }
+
                             if (scoringPhase)
                                 break;
 
@@ -228,7 +230,7 @@ int main()
                             {
                                 // If both players accept the dead groups : scoring and incidentally the game, is done
                                 packet.clear();
-                                ServerMessage message(scoringEnded);
+                                const ServerMessage message(scoringEnded);
                                 packet << message;
                                 for (auto& player : players)
                                 {

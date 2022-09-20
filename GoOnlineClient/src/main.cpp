@@ -227,6 +227,7 @@ int main()
                     {
                         clientState = scoringPhase;
                         turnToPlay = static_cast<Stone>(message.additionalInfo);
+                        goban.GenerateGroupIds();
                         break;
                     }
                     default:
