@@ -285,17 +285,22 @@ namespace golc
 	{
 		for (auto& stone : group)
 		{
-			if (StoneAt(stone) == black)
-			{
-				wCaptures_++;
-			}
-			else if (StoneAt(stone) == white)
-			{
-				bCaptures_++;
-			}
-
-			stones_.at(stone.first).at(stone.second) = empty;
+			KillStoneScoring(stone);
 		}
+	}
+
+	void Goban::KillStoneScoring(const Coord& stone)
+	{
+		if (StoneAt(stone) == black)
+		{
+			wCaptures_++;
+		}
+		else if (StoneAt(stone) == white)
+		{
+			bCaptures_++;
+		}
+
+		stones_.at(stone.first).at(stone.second) = empty;
 	}
 
 	void Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const

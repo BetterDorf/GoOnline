@@ -12,9 +12,13 @@ namespace gog
 
 		void SetPlayerColour(const Stone playerColour) { playerColour_ = playerColour; }
 		void UpdateMove(const golc::Goban& goban);
+		void UpdateDeadGroup(const golc::Goban& goban, int groupId);
+		void ResetDeadGroups();
 		void UpdateMouse(sf::Vector2i mousePos);
 		bool HasMouseSelection() const { return mouseHasSelection_; }
 		sf::Vector2i getMouseSelection() const { return mouseSelection_; }
+
+		void ApplyDeadGroupsToBoard(golc::Goban& goban);
 
 		void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 

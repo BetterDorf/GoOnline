@@ -60,6 +60,8 @@ int main()
     // PLAY GAME
     Stone toPlay = black;
     bool gameOver = false;
+
+    bool sendToOther = true;
     while (!gameOver)
     {
         // Selector logic to receive data from the clients
@@ -99,6 +101,8 @@ int main()
                         {
                         case stonePlacement:
                         {
+                            sendToOther = true;
+
                             // Play the move
                             if (goban.PlayStone(move.x, move.y, toPlay))
                             {
@@ -124,6 +128,13 @@ int main()
                                 //Game ends
                                 packet.clear();
                                 serverMessage.msgType = scoring;
+
+                                // Pass the turn if game resumes
+                                if (toPlay == black)
+                                    toPlay = white;
+                                else
+                                    toPlay = black;
+                                serverMessage.additionalInfo = toPlay;
                                 packet << serverMessage;
 
                                 // Send to all
@@ -134,6 +145,9 @@ int main()
 
                                 scoringPhase = true;
                                 goban.GenerateGroupIds();
+
+                                // Don't use normal sending
+                                sendToOther = false;
                             }
 
                             consecutivePass = true;
@@ -144,6 +158,7 @@ int main()
                         {
                             // Abandonning is always valid but ends the game
                             gameOver = true;
+                            sendToOther = true;
                             break;
                         }
                         default:
@@ -153,7 +168,7 @@ int main()
 
                         // Transmit the move
                         // TODO ask for redo if move is invalid
-                        if (validMove)
+                        if (validMove && sendToOther)
                         {
                             packet.clear();
                             packet << move;

@@ -35,6 +35,30 @@ namespace gog
 		goban.ReadBoardInfo(board_, bCaps_, wCaps_);
 	}
 
+	void GoGraphics::UpdateDeadGroup(const golc::Goban& goban, int groupId)
+	{
+		auto groups = goban.GroupsById()[groupId];
+		for (const auto& [fst, snd] : groups)
+		{
+			deadBoard_.at(fst).at(snd) = !deadBoard_.at(fst).at(snd);
+		}
+	}
+
+	void GoGraphics::ResetDeadGroups()
+	{
+		deadBoard_.clear();
+
+		for (int x = 0; x < size_; x++)
+		{
+			deadBoard_.emplace_back(std::vector<bool>());
+
+			for (int y = 0; y < size_; y++)
+			{
+				deadBoard_.at(x).emplace_back(false);
+			}
+		}
+	}
+
 	void GoGraphics::UpdateMouse(const sf::Vector2i mousePos)
 	{
 		const sf::Vector2f mousePosf(mousePos);
@@ -49,6 +73,21 @@ namespace gog
 
 		mouseHasSelection_ = true;
 		mouseSelection_ = mouseGridPos;
+	}
+
+	void GoGraphics::ApplyDeadGroupsToBoard(golc::Goban& goban)
+	{
+		for (int x = 0; x < size_; x++)
+		{
+			for (int y = 0; y < size_; y++)
+			{
+				if (deadBoard_.at(x).at(y))
+				{
+					golc::Coord coord(x, y);
+					goban.KillStoneScoring(coord);
+				}
+			}
+		}
 	}
 
 	void GoGraphics::draw(sf::RenderTarget& target, sf::RenderStates states) const

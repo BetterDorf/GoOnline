@@ -35,6 +35,8 @@ namespace golc
 		 */
 		void KillGroupScoring(const Group&);
 
+		void KillStoneScoring(const Coord&);
+
 		[[nodiscard]] Stone StoneAt(int x, int y) const;
 		[[nodiscard]] Stone StoneAt(Coord) const;
 

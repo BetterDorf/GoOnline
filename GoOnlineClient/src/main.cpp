@@ -23,7 +23,10 @@ int main()
 
     Stone turnToPlay = black;
     bool gameOver = false;
+    bool hasAcceptedDead = false;
+    std::pair<double, double> scores;
     bool won = false;
+    bool concedeWin = false;
 
     // Network logic
     sf::TcpSocket socket;
@@ -105,8 +108,6 @@ int main()
         // Update ImGui
         ImGui::SFML::Update(window, deltaClock.restart());
 
-        // TODO switch on gamestate to receive and send the correct packets
-
         switch (clientState)
         {
         case login:
@@ -170,13 +171,11 @@ int main()
                 {
                     playerColour = black;
                     otherColour = white;
-                    std::cout << "You play black" << std::endl;
                 }
                 else
                 {
                     playerColour = white;
                     otherColour = black;
-                    std::cout << "You play white" << std::endl;
                 }
 
                 gobanVisuals.SetPlayerColour(playerColour);
@@ -226,29 +225,8 @@ int main()
                     {
                     case scoring:
                     {
-                        gameOver = true;
-
-                        auto scores = goban.ScoreBoard();
-                        double playerScore, otherScore;
-                        if (playerColour == black)
-                        {
-                            playerScore = scores.first;
-                            otherScore = scores.second;
-                        }
-                        else
-                        {
-                            playerScore = scores.second;
-                            otherScore = scores.first;
-                        }
-                        if (playerScore > otherScore)
-                        {
-                            won = true;
-                        }
-                        else
-                        {
-                            won = false;
-                        }
-
+                        clientState = scoringPhase;
+                        turnToPlay = static_cast<Stone>(message.additionalInfo);
                         break;
                     }
                     default:
@@ -280,6 +258,7 @@ int main()
                     case abandon:
                     {
                         won = true;
+                        concedeWin = true;
                         clientState = done;
                         break;
                     }
@@ -295,7 +274,6 @@ int main()
                 }
 
                 inPacket.clear();
-                std::cout << "Packet received" << std::endl;
             }
             else
             {
@@ -311,7 +289,6 @@ int main()
                         turnToPlay = otherColour;
                         gobanVisuals.UpdateMove(goban);
                         outPacket.clear();
-                        std::cout << "Packet Sent" << std::endl;
                     }
 
                     // No need to read input, just wait on the sending
@@ -362,6 +339,8 @@ int main()
 
                         validMove = true;
                         gameOver = true;
+                        won = false;
+                        concedeWin = true;
                     }
                 }
 
@@ -386,13 +365,83 @@ int main()
                 if (socket.receive(inPacket) == sf::Socket::Done)
                 {
                     // Read data from server
+                    switch (GetPacketType(inPacket))
+                    {
+                    case serverMessage:
+	                    {
+                        ServerMessage message;
+                        inPacket >> message;
+
+                        if (message.msgType == scoringEnded)
+                        {
+                            clientState = done;
+
+                            // Score the game
+                            gobanVisuals.ApplyDeadGroupsToBoard(goban);
+                            scores = goban.ScoreBoard();
+
+                            double playerScore, otherScore;
+                            if (playerColour == black)
+                            {
+                                playerScore = scores.first;
+                                otherScore = scores.second;
+                            }
+                            else
+                            {
+                                playerScore = scores.second;
+                                otherScore = scores.first;
+                            }
+                            if (playerScore > otherScore)
+                            {
+                                won = true;
+                            }
+                            else
+                            {
+                                won = false;
+                            }
+
+                            concedeWin = false;
+                            gameOver = true;
+                            clientState = done;
+                        }
+                    		break;
+	                    }
+                    case deadGroup: 
+						{
+                        DeadGroupPacket deadPacket;
+                        inPacket >> deadPacket;
+
+                        switch (deadPacket.step)
+                        {
+                        case continueScoring:
+	                        {
+                        	// apply the given dead group
+                            gobanVisuals.UpdateDeadGroup(goban, deadPacket.groupId);
+		                        break;
+	                        }
+                        case resumePlay:
+	                        {
+                            gobanVisuals.ResetDeadGroups();
+                            clientState = playing;
+                            hasAcceptedDead = false;
+		                        break;
+	                        }
+                        default: break;
+                        }
+							break;
+						}
+                    default: break;
+                    }
+
+                    inPacket.clear();
                 }
 
                 if (isSending)
                 {
                     if (socket.send(outPacket) == sf::Socket::Done)
                     {
-	                    // Move is sent out
+                        isSending = false;
+                        outPacket.clear();
                     }
 
                     break;
@@ -431,6 +480,9 @@ int main()
                     deadPacket.step = continueScoring;
                     deadPacket.groupId = id;
                     validPacket = true;
+
+                    // Show the change locally
+                    gobanVisuals.UpdateDeadGroup(goban, id);
                 }
                 else
                 {
@@ -441,6 +493,8 @@ int main()
                 {
                     outPacket.clear();
                     outPacket << deadPacket;
+
+                    isSending = true;
                 }
 
 		        break;
