@@ -51,8 +51,8 @@ namespace gog
 		sf::Texture goCornerTRTxt_;
 		sf::Texture goCornerBLTxt_;
 		sf::Texture goCornerBRTxt_;
-
 		sf::Texture whiteCircleTxt_;
 		sf::Texture blackCircleTxt_;
+		sf::Texture hoshiTxt_;
 	};
 }

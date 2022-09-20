@@ -35,6 +35,7 @@ namespace gog
 		goCornerBRTxt_.loadFromFile("data/CornerBR.png");
 		whiteCircleTxt_.loadFromFile("data/WhiteCircle.png");
 		blackCircleTxt_.loadFromFile("data/BlackCircle.png");
+		hoshiTxt_.loadFromFile("data/Hoshi.png");
 
 		pixelSize_ = goTileTxt_.getSize().x;
 	}
@@ -172,6 +173,21 @@ namespace gog
 
 				if (spriteToDraw->getPosition().x > furthest)
 					furthest = spriteToDraw->getPosition().x;
+			}
+		}
+
+		// Draw Hoshis
+		if (size_ == 19)
+		{
+			sprite.setTexture(hoshiTxt_);
+
+			for (int x = 3; x < size_; x += 6)
+			{
+				for (int y = 3; y <size_; y += 6)
+				{
+					sprite.setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
+					target.draw(sprite);
+				}
 			}
 		}
 
