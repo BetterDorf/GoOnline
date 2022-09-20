@@ -62,6 +62,7 @@ int main()
     bool gameOver = false;
 
     bool sendToOther = true;
+    bool sendToAll = false;
     while (!gameOver)
     {
         // Selector logic to receive data from the clients
@@ -207,6 +208,8 @@ int main()
                         {
                         case continueScoring:
                             // Check if packet is valid
+                            sendToAll = false;
+                            scoringAcceptedBy = empty;
                             for (const auto& [fst, snd] : goban.GroupsById())
                             {
                                 if (fst == deadPacket.groupId)
@@ -217,6 +220,7 @@ int main()
                             }
                             break;
                         case resumePlay:
+                            sendToAll = true;
                             scoringAcceptedBy = empty;
                             scoringPhase = false;
                             validPacket = true;
@@ -251,7 +255,7 @@ int main()
 
 	                        for (auto& player : players)
 	                        {
-		                        if (player.colour != curPlayer.colour)
+		                        if (player.colour != curPlayer.colour || sendToAll)
 		                        {
                                     player.clientConnection.send(packet);
 		                        }

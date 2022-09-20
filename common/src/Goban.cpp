@@ -388,6 +388,8 @@ namespace golc
 	{
 		int id = 0;
 
+		groupsById_ = {};
+
 		// Loop over every intersection
 		for (int x = 0; x < x_; x++)
 		{

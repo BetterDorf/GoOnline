@@ -78,9 +78,9 @@ int main()
     buttonConcede.setPosition(sf::Vector2f(1000, 400));
 
     auto buttonAccept = Button(sf::Vector2f(200, 50), "Accept Groups", font, sf::Color::Red, sf::Color::White);
-    buttonPass.setPosition(sf::Vector2f(850, 400));
+    buttonAccept.setPosition(sf::Vector2f(850, 400));
     auto buttonResume = Button(sf::Vector2f(200, 50), "Resume Play", font, sf::Color::Red, sf::Color::White);
-    buttonConcede.setPosition(sf::Vector2f(850, 550));
+    buttonResume.setPosition(sf::Vector2f(850, 550));
 
     sf::Text winText;
     winText.setFont(font);
@@ -503,6 +503,7 @@ int main()
                     }
                     else if (buttonResume.Contains(mousePos) && mousePressed)
                     {
+                        gobanVisuals.ResetDeadGroups();
                         deadPacket.step = resumePlay;
                         hasAcceptedDead = false;
                         validPacket = true;
