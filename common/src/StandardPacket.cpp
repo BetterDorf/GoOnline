@@ -17,6 +17,6 @@ sf::Packet& operator >>(sf::Packet& packet, StandardPacket& standardPacket)
 	int a;
 	packet >> a;
 
-	standardPacket.type = (PacketType)a;
+	standardPacket.type = static_cast<PacketType>(a);
 	return packet;
 } 

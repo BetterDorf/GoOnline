@@ -5,12 +5,12 @@ ServerMessage::ServerMessage()
 	type = serverMessage;
 }
 
-ServerMessage::ServerMessage(MessageType messageType) : ServerMessage()
+ServerMessage::ServerMessage(const MessageType messageType) : ServerMessage()
 {
 	msgType = messageType;
 }
 
-ServerMessage::ServerMessage(MessageType messageType, int info) : ServerMessage(messageType)
+ServerMessage::ServerMessage(const MessageType messageType, const int info) : ServerMessage(messageType)
 {
 	additionalInfo = info;
 }
@@ -24,6 +24,6 @@ sf::Packet& operator >>(sf::Packet& packet, ServerMessage& message)
 {
 	int a;
 	packet >> a >> message.additionalInfo;
-	message.msgType = (MessageType)a;
+	message.msgType = static_cast<MessageType>(a);
 	return packet;
 }

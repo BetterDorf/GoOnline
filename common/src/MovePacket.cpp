@@ -14,6 +14,6 @@ sf::Packet& operator >>(sf::Packet& packet, MovePacket& move)
 {
 	int a;
 	packet >> a >> move.x >> move.y;
-	move.moveType = (MoveType)a;
+	move.moveType = static_cast<MoveType>(a);
 	return packet;
 }

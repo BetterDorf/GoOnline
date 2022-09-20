@@ -364,6 +364,8 @@ namespace golc
 
 	void Goban::GenerateGroupIds()
 	{
+		int id = 0;
+
 		// Loop over every intersection
 		for (int x = 0; x < x_; x++)
 		{
@@ -376,7 +378,7 @@ namespace golc
 				Coord coord(x,y);
 
 				bool contained = false;
-				for (const auto& group : groupsById | std::views::values)
+				for (const auto& group : groupsById_ | std::views::values)
 				{
 					if (std::ranges::find(group, coord) != group.end())
 					{
@@ -388,12 +390,14 @@ namespace golc
 				{
 					continue;
 				}
+
+				// Get group
+				Group groupToAdd = GetGroup(coord);
+
+				// Add Group to groupsById
+				groupsById_.emplace(id++, groupToAdd);
 			}
 		}
-
-		// Get group
-
-		// Add Group to groupsById
 	}
 
 	std::vector<Group> Goban::FindDeadGroups() const

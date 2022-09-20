@@ -7,12 +7,14 @@ DeadGroupPacket::DeadGroupPacket()
 
 sf::Packet& operator <<(sf::Packet& packet, const DeadGroupPacket& deadPacket)
 {
-	packet << deadPacket.groupId;
+	packet << deadPacket.step << deadPacket.groupId;
 	return packet;
 }
 
 sf::Packet& operator >>(sf::Packet& packet, DeadGroupPacket& deadPacket)
 {
-	packet >> deadPacket.groupId;
+	int a;
+	packet >> a >> deadPacket.groupId;
+	deadPacket.step = static_cast<ScoringSteps>(a);
 	return packet;
 }

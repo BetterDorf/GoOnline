@@ -45,6 +45,7 @@ namespace golc
 		[[nodiscard]] std::pair<double, double> ScoreBoard() const;
 
 		void GenerateGroupIds();
+		[[nodiscard]] std::map<int, Group> GroupsById() const { return groupsById_; }
 	private:
 		int x_;
 		int y_;
@@ -56,7 +57,7 @@ namespace golc
 		Board previousBoardState_;
 		Board prviousBoardWithSamePlayer_;
 
-		std::map<int, Group> groupsById = {};
+		std::map<int, Group> groupsById_ = {};
 
 		/// <summary>
 		/// Play a stone ignoring ko and without writing to variables like previous board state and wCaptures_

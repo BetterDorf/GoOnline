@@ -9,8 +9,7 @@ enum MessageType
 	gameStarted,
 	invalidMove,
 	scoring,
-	win,
-	lose
+	scoringEnded
 };
 
 struct ServerMessage : StandardPacket

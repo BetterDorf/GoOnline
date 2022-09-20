@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "MovePacket.h"
 #include "ServerMessage.h"
+#include "DeadGroupPacket.h"
 #include "Goban.h"
 
 int main()
@@ -12,6 +13,8 @@ int main()
     golc::Goban goban(19, 19);
 
     bool consecutivePass = false;
+    bool scoringPhase = false;
+    Stone scoringAcceptedBy = empty;
 
     sf::TcpListener listener;
     unsigned short portNum = 3003;
@@ -79,93 +82,168 @@ int main()
                     // Receive data from client
                     packet.clear();
                     curPlayer.clientConnection.receive(packet);
-                    if (GetPacketType(packet) != move)
-                    {
-                        // We only care about moves from clients
-                        continue;
-                    }
 
-                    MovePacket move;
-                    packet >> move;
-                    bool validMove = true;
+                    switch (GetPacketType(packet))
+                    {
+                    case PacketType::serverMessage: break;
+                    case move:
+	                    {
+                            if (scoringPhase)
+                                break;
 
-                    switch (move.moveType)
-                    {
-                    case stonePlacement:
-                    {
-                        // Play the move
-                        if (goban.PlayStone(move.x, move.y, toPlay))
+                        MovePacket move;
+                        packet >> move;
+                        bool validMove = true;
+
+                        switch (move.moveType)
                         {
-                            consecutivePass = false;
-                            validMove = true;
+                        case stonePlacement:
+                        {
+                            // Play the move
+                            if (goban.PlayStone(move.x, move.y, toPlay))
+                            {
+                                consecutivePass = false;
+                                validMove = true;
+                            }
+                            else
+                            {
+                                validMove = false;
+
+                                // TODO Ask for redo if the move isn't valid
+                                std::cout << "Invalid Move." << std::endl;
+                            }
+
+                            break;
                         }
-                        else
+                        case pass:
                         {
+                            // Pass is always valid
+
+                            if (consecutivePass)
+                            {
+                                //Game ends
+                                packet.clear();
+                                serverMessage.msgType = scoring;
+                                packet << serverMessage;
+
+                                // Send to all
+                                for (auto& player : players)
+                                {
+                                    player.clientConnection.send(packet);
+                                }
+
+                                scoringPhase = true;
+                                goban.GenerateGroupIds();
+                            }
+
+                            consecutivePass = true;
+
+                            break;
+                        }
+                        case abandon:
+                        {
+                            // Abandonning is always valid but ends the game
+                            gameOver = true;
+                            break;
+                        }
+                        default:
                             validMove = false;
-
-                            // TODO Ask for redo if the move isn't valid
-                            std::cout << "Invalid Move." << std::endl;
+                            break;
                         }
 
-                        break;
-                    }
-                    case pass:
-                    {
-                        // Pass is always valid
-
-                        if (consecutivePass)
+                        // Transmit the move
+                        // TODO ask for redo if move is invalid
+                        if (validMove)
                         {
-                            //Game ends
                             packet.clear();
-                            serverMessage.msgType = scoring;
-                            packet << serverMessage;
-
-                            // Send to all
-                            for (auto& player : players)
+                            packet << move;
+                            for (auto& [clientConnection, colour] : players)
                             {
-                                player.clientConnection.send(packet);
+                                if (colour != curPlayer.colour)
+                                {
+                                    clientConnection.send(packet);
+                                }
                             }
 
-                            return EXIT_SUCCESS;
+                            // Print the goban on the server-side
+                            std::cout << goban.ToString() << std::endl;
+
+                            // Change player to play
+                            if (toPlay == black)
+                                toPlay = white;
+                            else
+                                toPlay = black;
                         }
-
-                        consecutivePass = true;
-
                         break;
-                    }
-                    case abandon:
-                    {
-                        // Abandonning is always valid but ends the game
-                        gameOver = true;
-                        break;
-                    }
-                    default:
-                        validMove = false;
-                        break;
-                    }
+	                    }
+                    case deadGroup:
+	                    {
+                        if (!scoringPhase)
+                            break;
 
-                    // Transmit the move
-                    // TODO ask for redo if move is invalid
-                    if (validMove)
-                    {
-                        packet.clear();
-                        packet << move;
-                        for (auto& player : players)
+						DeadGroupPacket deadPacket;
+                        packet >> deadPacket;
+
+                        bool validPacket = false;
+
+                        switch (deadPacket.step)
                         {
-                            if (player.colour != curPlayer.colour)
+                        case continueScoring:
+                            // Check if packet is valid
+                            for (const auto& [fst, snd] : goban.GroupsById())
                             {
-                                player.clientConnection.send(packet);
+                                if (fst == deadPacket.groupId)
+                                {
+                                    validPacket = true;
+                                    break;
+                                }
                             }
+                            break;
+                        case resumePlay:
+                            scoringAcceptedBy = empty;
+                            scoringPhase = false;
+                            validPacket = true;
+                            break;
+                        case acceptScoring:
+                            if (scoringAcceptedBy == empty)
+                            {
+                                scoringAcceptedBy = curPlayer.colour;
+                            }
+                            else if(scoringAcceptedBy != curPlayer.colour)
+                            {
+                                // If both players accept the dead groups : scoring and incidentally the game, is done
+                                packet.clear();
+                                ServerMessage message(scoringEnded);
+                                packet << message;
+                                for (auto& player : players)
+                                {
+                                    player.clientConnection.send(packet);
+                                }
+                                return EXIT_SUCCESS;
+                            }
+                            validPacket = true;
+                            break;
+                        default: break;
                         }
 
-                        // Print the goban on the server-side
-                        std::cout << goban.ToString() << std::endl;
+                        // Resend packet
+                        if (validPacket)
+                        {
+                            packet.clear();
+                            packet << deadPacket;
 
-                        // Change player to play
-                        if (toPlay == black)
-                            toPlay = white;
-                        else
-                            toPlay = black;
+	                        for (auto& player : players)
+	                        {
+		                        if (player.colour != curPlayer.colour)
+		                        {
+                                    player.clientConnection.send(packet);
+		                        }
+	                        }
+                        }
+
+		                break;
+	                    }
+                    default: break;
                     }
                 }
             }
