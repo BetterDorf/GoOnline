@@ -310,6 +310,12 @@ namespace golc
 		wCaps = wCaptures_;
 	}
 
+	void Goban::ReadCaptures(int& bCaps, int& wCaps) const
+	{
+		bCaps = bCaptures_;
+		wCaps = wCaptures_;
+	}
+
 	std::pair<double, double> Goban::ScoreBoard() const
 	{
 		std::vector<Coord> checkedCoords;

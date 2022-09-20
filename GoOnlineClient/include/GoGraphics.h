@@ -12,6 +12,7 @@ namespace gog
 
 		void SetPlayerColour(const Stone playerColour) { playerColour_ = playerColour; }
 		void UpdateMove(const golc::Goban& goban);
+		void UpdateCaptureCount(const golc::Goban& goban);
 		void UpdateDeadGroup(const golc::Goban& goban, int groupId);
 		void ResetDeadGroups();
 		void UpdateMouse(sf::Vector2i mousePos);

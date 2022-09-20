@@ -41,6 +41,7 @@ namespace golc
 		[[nodiscard]] Stone StoneAt(Coord) const;
 
 		void ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const;
+		void ReadCaptures(int& bCaps, int& wCaps) const;
 
 		std::string ToString();
 

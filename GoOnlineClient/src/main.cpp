@@ -386,6 +386,7 @@ int main()
                             // Score the game
                             gobanVisuals.ApplyDeadGroupsToBoard(goban);
                             scores = goban.ScoreBoard();
+                            gobanVisuals.UpdateCaptureCount(goban);
 
                             double playerScore, otherScore;
                             if (playerColour == black)

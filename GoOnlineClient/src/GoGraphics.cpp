@@ -35,6 +35,11 @@ namespace gog
 		goban.ReadBoardInfo(board_, bCaps_, wCaps_);
 	}
 
+	void GoGraphics::UpdateCaptureCount(const golc::Goban& goban)
+	{
+		goban.ReadCaptures(bCaps_, wCaps_);
+	}
+
 	void GoGraphics::UpdateDeadGroup(const golc::Goban& goban, int groupId)
 	{
 		auto groups = goban.GroupsById()[groupId];
