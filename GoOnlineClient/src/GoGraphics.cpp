@@ -25,6 +25,14 @@ namespace gog
 		wStonesTxt_.loadFromFile("data/WStone.png");
 		tempStonesTxt_.loadFromFile("data/TempStone.png");
 		goTileTxt_.loadFromFile("data/Board.png");
+		goBorderTopTxt_.loadFromFile("data/BorderTop.png");
+		goBorderRightTxt_.loadFromFile("data/BorderRight.png");
+		goBorderLeftTxt_.loadFromFile("data/BorderLeft.png");
+		goBorderBottomTxt_.loadFromFile("data/BorderBottom.png");
+		goCornerTLTxt_.loadFromFile("data/CornerTL.png");
+		goCornerTRTxt_.loadFromFile("data/CornerTR.png");
+		goCornerBLTxt_.loadFromFile("data/CornerBL.png");
+		goCornerBRTxt_.loadFromFile("data/CornerBR.png");
 
 		pixelSize_ = goTileTxt_.getSize().x;
 	}
@@ -102,19 +110,66 @@ namespace gog
 		sf::Sprite sprite;
 		sf::Sprite sprite2;
 
-		const sf::Color transparentColour = sf::Color(255, 255, 255, 122);
+		const auto transparentColour = sf::Color(255, 255, 255, 122);
 
 		// draw squares and mouse selection
 		sprite.setTexture(goTileTxt_);
+
 		for (int x = 0; x < size_; x++)
 		{
 			for (int y = 0; y < size_; y++)
 			{
-				sprite.setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
-				target.draw(sprite);
+				sf::Sprite* spriteToDraw = &sprite;
 
-				if (sprite.getPosition().x > furthest)
-					furthest = sprite.getPosition().x;
+				// Check for borders and Corners
+				if (x == 0)
+				{
+					spriteToDraw = &sprite2;
+					if (y == 0)
+					{
+						sprite2.setTexture(goCornerTLTxt_);
+					}
+					else if (y == size_ - 1)
+					{
+						sprite2.setTexture(goCornerBLTxt_);
+					}
+					else
+					{
+						sprite2.setTexture(goBorderLeftTxt_);
+					}
+				}
+				else if (x == size_ - 1)
+				{
+					spriteToDraw = &sprite2;
+					if (y == 0)
+					{
+						sprite2.setTexture(goCornerTRTxt_);
+					}
+					else if (y == size_ - 1)
+					{
+						sprite2.setTexture(goCornerBRTxt_);
+					}
+					else
+					{
+						sprite2.setTexture(goBorderRightTxt_);
+					}
+				}
+				else if (y == 0)
+				{
+					spriteToDraw = &sprite2;
+					sprite2.setTexture(goBorderTopTxt_);
+				}
+				else if (y == size_ -1)
+				{
+					spriteToDraw = &sprite2;
+					sprite2.setTexture(goBorderBottomTxt_);
+				}
+
+				spriteToDraw->setPosition(getPosition().x + x * pixelSize_, getPosition().y + y * pixelSize_);
+				target.draw(*spriteToDraw);
+
+				if (spriteToDraw->getPosition().x > furthest)
+					furthest = spriteToDraw->getPosition().x;
 			}
 		}
 
@@ -143,7 +198,6 @@ namespace gog
 			return;
 
 		// draw stones
-		// TODO draw them transparently if they are dead on the dead board
 		sprite.setTexture(bStonesTxt_);
 		sprite2.setTexture(wStonesTxt_);
 		for (int x = 0; x < size_; x++)

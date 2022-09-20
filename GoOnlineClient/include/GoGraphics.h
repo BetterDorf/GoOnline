@@ -42,5 +42,13 @@ namespace gog
 		sf::Texture wStonesTxt_;
 		sf::Texture tempStonesTxt_;
 		sf::Texture goTileTxt_;
+		sf::Texture goBorderTopTxt_;
+		sf::Texture goBorderRightTxt_;
+		sf::Texture goBorderBottomTxt_;
+		sf::Texture goBorderLeftTxt_;
+		sf::Texture goCornerTLTxt_;
+		sf::Texture goCornerTRTxt_;
+		sf::Texture goCornerBLTxt_;
+		sf::Texture goCornerBRTxt_;
 	};
 }
