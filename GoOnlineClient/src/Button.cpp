@@ -42,3 +42,8 @@ void Button::setPosition(const sf::Vector2f& position)
 	text_.setPosition(position);
 	shape_.setPosition(position);
 }
+
+void Button::SetButtonColor(const sf::Color& color)
+{
+	shape_.setFillColor(color);
+}

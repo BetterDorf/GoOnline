@@ -13,6 +13,7 @@ public:
 	bool Contains(const sf::Vector2i& mousePos);
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void setPosition(const sf::Vector2f& position);
+	void SetButtonColor(const sf::Color&);
 private:
 	sf::RectangleShape shape_;
 	bool drawText_ = false;

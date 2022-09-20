@@ -77,6 +77,11 @@ int main()
     auto buttonConcede = Button(sf::Vector2f(150, 50), "concede", font, sf::Color(247, 222, 165, 255), sf::Color::Black);
     buttonConcede.setPosition(sf::Vector2f(1000, 400));
 
+    auto buttonAccept = Button(sf::Vector2f(200, 50), "Accept Groups", font, sf::Color::Red, sf::Color::White);
+    buttonPass.setPosition(sf::Vector2f(850, 400));
+    auto buttonResume = Button(sf::Vector2f(200, 50), "Resume Play", font, sf::Color::Red, sf::Color::White);
+    buttonConcede.setPosition(sf::Vector2f(850, 550));
+
     sf::Text winText;
     winText.setFont(font);
     winText.scale(sf::Vector2f(4, 4));
@@ -360,8 +365,9 @@ int main()
         case scoringPhase:
 		    {
 		        window.draw(gobanVisuals);
-
-                // TODO add validate scoring button
+                buttonAccept.SetButtonColor(hasAcceptedDead ? sf::Color::Green : sf::Color::Red);
+                window.draw(buttonAccept);
+                window.draw(buttonResume);
 
                 if (socket.receive(inPacket) == sf::Socket::Done)
                 {
@@ -418,6 +424,7 @@ int main()
 	                        {
                         	// apply the given dead group
                             gobanVisuals.UpdateDeadGroup(goban, deadPacket.groupId);
+                            hasAcceptedDead = false;
 		                        break;
 	                        }
                         case resumePlay:
@@ -454,7 +461,7 @@ int main()
                 DeadGroupPacket deadPacket;
                 bool validPacket = false;
 
-                if (gobanVisuals.HasMouseSelection() && mousePressed)
+                if (gobanVisuals.HasMouseSelection() && mousePressed && !hasAcceptedDead)
                 {
                     sf::Vector2i selection = gobanVisuals.getMouseSelection();
                     golc::Coord selectionCoord(selection.y, selection.x);
@@ -488,6 +495,18 @@ int main()
                 else
                 {
 	                // Do Button logic
+                    if (buttonAccept.Contains(mousePos) && mousePressed && !hasAcceptedDead)
+                    {
+                        deadPacket.step = acceptScoring;
+                        hasAcceptedDead = true;
+                        validPacket = true;
+                    }
+                    else if (buttonResume.Contains(mousePos) && mousePressed)
+                    {
+                        deadPacket.step = resumePlay;
+                        hasAcceptedDead = false;
+                        validPacket = true;
+                    }
                 }
 
                 if (validPacket)
