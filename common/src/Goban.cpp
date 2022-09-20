@@ -281,6 +281,23 @@ namespace golc
 		}
 	}
 
+	void Goban::KillGroupScoring(const Group& group)
+	{
+		for (auto& stone : group)
+		{
+			if (StoneAt(stone) == black)
+			{
+				wCaptures_++;
+			}
+			else if (StoneAt(stone) == white)
+			{
+				bCaptures_++;
+			}
+
+			stones_.at(stone.first).at(stone.second) = empty;
+		}
+	}
+
 	void Goban::ReadBoardInfo(Board& board, int& bCaps, int& wCaps) const
 	{
 		board = Board(stones_);

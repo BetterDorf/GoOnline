@@ -7,6 +7,7 @@
 
 #include "MovePacket.h"
 #include "ServerMessage.h"
+#include "DeadGroupPacket.h"
 #include "Goban.h"
 #include "GoGraphics.h"
 #include "ClientGameStates.h"
@@ -206,7 +207,8 @@ int main()
                 // Other player's turn
 
                 // Receive data
-                if (socket.receive(inPacket) != sf::Socket::Done)
+                sf::Socket::Status status = socket.receive(inPacket);
+                if (status != sf::Socket::Done)
                 {
                     break;
                 }
@@ -378,6 +380,68 @@ int main()
         case scoringPhase:
 		    {
 		        window.draw(gobanVisuals);
+
+                // TODO add validate scoring button
+
+                if (socket.receive(inPacket) == sf::Socket::Done)
+                {
+                    // Read data from server
+                }
+
+                if (isSending)
+                {
+                    if (socket.send(outPacket) == sf::Socket::Done)
+                    {
+	                    // Move is sent out
+                    }
+
+                    break;
+                }
+
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                gobanVisuals.UpdateMouse(mousePos);
+
+                DeadGroupPacket deadPacket;
+                bool validPacket = false;
+
+                if (gobanVisuals.HasMouseSelection() && mousePressed)
+                {
+                    sf::Vector2i selection = gobanVisuals.getMouseSelection();
+                    golc::Coord selectionCoord(selection.y, selection.x);
+
+                    int id = 0;
+                    bool found = false;
+
+                    // Check selection to see if it's in a group
+                    auto groups = goban.GroupsById();
+
+                    for (auto& group : groups)
+                    {
+	                    if (std::ranges::find(group.second, selectionCoord) != group.second.end())
+	                    {
+                            found = true;
+                            id = group.first;
+                            break;
+	                    }
+                    }
+
+                    if (!found)
+                        break;
+
+                    deadPacket.step = continueScoring;
+                    deadPacket.groupId = id;
+                    validPacket = true;
+                }
+                else
+                {
+	                // Do Button logic
+                }
+
+                if (validPacket)
+                {
+                    outPacket.clear();
+                    outPacket << deadPacket;
+                }
 
 		        break;
 		    }

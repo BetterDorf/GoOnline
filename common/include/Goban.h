@@ -30,6 +30,10 @@ namespace golc
 		[[nodiscard]] Group GetNeighbours(const Group& group) const;
 
 		void KillGroup(const Group&);
+		/**
+		 * \brief Kill a group and give point for captures
+		 */
+		void KillGroupScoring(const Group&);
 
 		[[nodiscard]] Stone StoneAt(int x, int y) const;
 		[[nodiscard]] Stone StoneAt(Coord) const;
